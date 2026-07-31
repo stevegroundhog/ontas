@@ -1,6 +1,6 @@
 {
-  "name": "app-builder-workspace",
-  "private": true,
+  "name": "ontas",
+  "private": false,
   "sideEffects": false,
   "type": "module",
   "overrides": {
@@ -88,6 +88,20 @@
     "typescript": "^5.7.0",
     "typescript-eslint": "^8.56.1",
     "vite": "^8.1.0"
-  }
+  },
+  "version": "1.0.0",
+  "description": "ONTAS \u2014 Open Nuclear Threat Awareness System (educational, unclassified public data)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stevegroundhog/civic-cactus-fair-flora.git"
+  },
+  "keywords": [
+    "nuclear",
+    "defcon",
+    "osint",
+    "education",
+    "geopolitics",
+    "open-source"
+  ]
 }
-

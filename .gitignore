@@ -3,3 +3,11 @@ node_modules/
 .github_repo
 .env
 .env.*
+.vercel/
+dist/
+.output/
+.tanstack/
+*.log
+.DS_Store
+screenshots/
+.node_modules.lock
