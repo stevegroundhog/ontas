@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { estimateSubPositions, HOME_PORTS } from "@/data/naval-deployments";
 import type { MaritimeUnit } from "@/data/maritime-units";
 import {
@@ -177,7 +178,6 @@ export function WoprApp() {
         setAis(data.ais);
         setAisSource(data.aisSource);
         setMaritimeAt(data.fetchedAt);
-        // Reflect real AIS health into intel source list
         setSources((prev) =>
           prev.map((s) =>
             s.id === "ais-fi"
@@ -292,6 +292,10 @@ export function WoprApp() {
         >
           What does DEFCON mean?
         </button>
+        {" · "}
+        <Link to="/article" className="underline decoration-dotted underline-offset-2 hover:text-bright">
+          Read the essay
+        </Link>
       </div>
 
       <header className="sticky top-0 z-20 border-b border-border bg-[#0b1220ee] backdrop-blur-md">
@@ -305,6 +309,9 @@ export function WoprApp() {
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
+            <Link to="/article" className="soft-btn">
+              Essay
+            </Link>
             <button type="button" className="soft-btn active" onClick={openLearn}>
               Beginner guide
             </button>
@@ -538,6 +545,19 @@ export function WoprApp() {
             <button type="button" className="text-sky-300 underline" onClick={openLearn}>
               Beginner guide
             </button>
+            {" · "}
+            <Link to="/article" className="text-sky-300 underline">
+              Full essay
+            </Link>
+            {" · "}
+            <a
+              href="https://github.com/stevegroundhog/ontas"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sky-300 underline"
+            >
+              GitHub
+            </a>
           </p>
         </footer>
       </main>

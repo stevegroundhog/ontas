@@ -6,6 +6,12 @@ Educational **unclassified** dashboard for nuclear awareness, global conflicts, 
 
 ---
 
+## Read the essay
+
+**[What public data can (and can’t) tell you about nuclear risk](./ARTICLE.md)** — also live at `/article` after you deploy.
+
+---
+
 ## Install in one click (pick one)
 
 ### A) Free website in the cloud (easiest for sharing)
