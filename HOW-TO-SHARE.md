@@ -1,43 +1,68 @@
 # How to share ONTAS (plain English)
 
-GitHub is **not** the website.  
-GitHub is a **folder in the cloud** that holds the code.
+## GitHub is the code folder — not the app itself
 
 | Thing | What it is | Can strangers use the app? |
 |-------|------------|----------------------------|
-| **GitHub** | Storage for code | Only if they know how to install & run it |
-| **Live website** (Vercel, etc.) | A real clickable app on the internet | **Yes** — just open the link |
+| **GitHub** | Public code folder | Only if they install it |
+| **One-click Deploy button** | Builds a live website for them | **Yes** — browser link |
+| **Docker on their PC** | Runs on their computer | Yes — `localhost:8080` |
+
+Repo: **https://github.com/stevegroundhog/ontas**
 
 ---
 
-## Link you can share today (code only)
+## Option 1 — One-button free website (best for sharing)
 
-Your code is public here:
+1. Open the repo: https://github.com/stevegroundhog/ontas  
+2. Click the **Deploy with Vercel** button in the README  
+   (or go here: https://vercel.com/new/clone?repository-url=https://github.com/stevegroundhog/ontas )  
+3. Log in with GitHub if asked  
+4. Click **Deploy** / **Create**  
+5. Wait ~1–2 minutes  
+6. Copy the URL (looks like `https://ontas-xxxx.vercel.app`)  
 
-**https://github.com/stevegroundhog/ontas**
+**Post that URL.** Friends open it like any website. No install.
 
-People who open that page see source code, not a full working app in their browser  
-(unless they know `npm install` — most people don’t).
+Same idea with **Render**: use the “Deploy to Render” button in the README.
 
 ---
 
-## Link you want for “anyone can use it”
+## Option 2 — Install on your own computer (Docker)
 
-You need a **hosted demo**. Easiest free option: **Vercel**.
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) and start it  
+2. Open a terminal:
 
-### Do this once (about 5 minutes)
+```bash
+git clone https://github.com/stevegroundhog/ontas.git
+cd ontas
+docker compose up --build
+```
 
-1. Open **https://vercel.com** and sign in (use **Continue with GitHub**).
-2. Click **Add New…** → **Project**.
-3. Find **`ontas`** (or `stevegroundhog/ontas`) → **Import**.
-4. Leave settings as default → click **Deploy**.
-5. Wait until it finishes (green “Success”).
-6. Click the big link Vercel shows (looks like `https://ontas-….vercel.app`).
+3. Open http://localhost:8080  
 
-**That** is the link you post everywhere.
+Or use the menu installer:
 
-Optional: on the GitHub repo page → ⚙️ **Settings** is not needed.  
-On Vercel project → **Settings** → **Domains** shows your permanent URL.
+```bash
+chmod +x install.sh
+./install.sh
+```
+
+---
+
+## Option 3 — Node without Docker
+
+Install Node 22 from https://nodejs.org then:
+
+```bash
+git clone https://github.com/stevegroundhog/ontas.git
+cd ontas
+npm install
+npm run build:node
+npm start
+```
+
+Open http://localhost:8080  
 
 ---
 
@@ -45,29 +70,22 @@ On Vercel project → **Settings** → **Domains** shows your permanent URL.
 
 ```
 ONTAS — free educational nuclear & conflict awareness map
-(public data only, not an official warning system)
+(public data only · not an official warning system)
 
-Try it:  https://YOUR-LINK.vercel.app
-Code:    https://github.com/stevegroundhog/ontas
+Live site:  https://YOUR-APP.vercel.app
+Code:       https://github.com/stevegroundhog/ontas
+One-click:  https://vercel.com/new/clone?repository-url=https://github.com/stevegroundhog/ontas
 ```
-
-Replace `YOUR-LINK` with the address Vercel gave you.
 
 ---
 
 ## Common mix-ups
 
-- **“I posted GitHub but friends say it doesn’t work”**  
-  They’re looking at code. Send the **Vercel** link instead.
+- **“I only shared GitHub and friends are confused”**  
+  Share the **Vercel/Render URL**, or tell them to click **Deploy with Vercel**.
 
 - **“The preview inside Grok”**  
-  Only you see that while building. Strangers cannot open it.
+  Only you see that. Not a public link.
 
-- **“Do I need to pay?”**  
-  GitHub public repos and Vercel hobby deploys are free for this kind of project.
-
----
-
-## After you have a Vercel link
-
-Reply here with it (or paste it into chat) and we can put it at the top of the README so the repo says **“Open the live app”** in big letters.
+- **“Is this free?”**  
+  Yes for typical hobby use (GitHub + Vercel free tier + Docker on your PC).

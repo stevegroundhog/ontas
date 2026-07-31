@@ -1,0 +1,20 @@
+# ONTAS — easiest self-host on your computer
+#
+#   docker compose up
+#
+# Then open: http://localhost:8080
+
+services:
+  ontas:
+    build: .
+    image: ontas:latest
+    container_name: ontas
+    ports:
+      - "8080:8080"
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0
+      - PORT=8080
+      - NITRO_HOST=0.0.0.0
+      - NITRO_PORT=8080
+    restart: unless-stopped

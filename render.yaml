@@ -1,0 +1,20 @@
+# One-click on Render.com (optional free host)
+services:
+  - type: web
+    name: ontas
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run build:node
+    startCommand: npm run start
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: HOST
+        value: "0.0.0.0"
+      - key: PORT
+        value: "10000"
+      - key: NITRO_HOST
+        value: "0.0.0.0"
+      - key: NITRO_PORT
+        value: "10000"
+    healthCheckPath: /

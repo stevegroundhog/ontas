@@ -119,11 +119,13 @@ function authPopupPlugin(): Plugin {
   };
 }
 
+// Nitro preset:
+// - default "vercel" for one-click Vercel deploys
+// - NITRO_PRESET=node-server for Docker / self-host
+const nitroPreset = process.env.NITRO_PRESET === "node-server" ? "node-server" : "vercel";
+
 // `0.0.0.0:8080` is the live-preview contract — don't change host/port.
-// Keep `nitro` gated to `build` (the Vercel deploy target): enabled in dev it
-// opens a second dev-server port, which breaks the single-port preview.
-// The dev server starts once `src/router.tsx` and `src/routes/` exist — see
-// AGENTS.md § "First scaffold".
+// Keep `nitro` gated to `build` so dev stays on a single port.
 export default defineConfig(({ command }) => ({
   server: {
     host: "0.0.0.0",
@@ -137,7 +139,7 @@ export default defineConfig(({ command }) => ({
     authPopupPlugin(),
     tailwindcss(),
     tanstackStart(),
-    ...(command === "build" ? [nitro({ preset: "vercel" })] : []),
+    ...(command === "build" ? [nitro({ preset: nitroPreset })] : []),
     viteReact(),
   ],
 }));
