@@ -1,8 +1,8 @@
 # ONTAS — Open Nuclear Threat Awareness System
 
-Educational, **unclassified**, open-source dashboard for nuclear awareness, global conflicts, and public sensors.
+> **New here?** GitHub stores the *code*. To let anyone **click and use** the app, host it once on Vercel — see **[HOW-TO-SHARE.md](./HOW-TO-SHARE.md)** (plain English).
 
-> **Not an official warning system.** Official U.S. DEFCON is classified. Real emergencies use **FEMA IPAWS / EAS / Wireless Emergency Alerts** and local authorities.
+> **Not an official warning system.** Official U.S. DEFCON is classified. Real emergencies use FEMA IPAWS / EAS / Wireless Emergency Alerts.
 
 ## Features
 
