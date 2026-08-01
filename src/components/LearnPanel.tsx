@@ -8,6 +8,7 @@ type SectionId =
   | "delivery"
   | "map"
   | "conflicts"
+  | "rad"
   | "survive"
   | "limits";
 
@@ -161,6 +162,33 @@ const SECTIONS: {
       },
       {
         p: "A conflict on the list does not mean nuclear war is imminent. Most wars stay conventional. Nuclear risk rises mainly when nuclear-armed states are direct parties or when crises spin out of control.",
+      },
+    ],
+  },
+  {
+    id: "rad",
+    title: "Radiation, dirty bombs & explosion steps",
+    blurb: "Open the Rad / CBRN desk for full detail — this is the short version.",
+    body: [
+      {
+        h: "Nuclear terrorism vs state nuclear war",
+        p: "State nuclear arsenals are the basis of strategic risk. Non-state nuclear weapons are assessed as extremely difficult and have never been confirmed used. More discussed in public security work are radiological dispersal devices (RDDs), stolen industrial sources, and attacks on facilities.",
+      },
+      {
+        h: "Types of radiation",
+        p: "Alpha is stopped by skin but dangerous if inhaled. Beta can burn skin. Gamma penetrates and is the main external fallout hazard. Neutrons matter mainly in the prompt pulse of a detonation. Decontamination is mostly about removing radioactive dust — you cannot wash off pure gamma rays.",
+      },
+      {
+        h: "Stay time",
+        p: "Stay time is how long you can remain at a measured dose rate before hitting a dose limit. Fallout dose rates drop over time (educational 7/10 rule). Officials use real instruments; this app cannot set your stay time.",
+      },
+      {
+        h: "If there is a nuclear detonation (public guidance themes)",
+        p: "Flash first, then blast. If you see a blinding flash: do not stare; take cover away from windows. After blast and fires, fallout may arrive on the wind — go in, stay in, tune in to official alerts. Remove outer clothes if you were outside and wash exposed skin.",
+      },
+      {
+        h: "Where to learn more in-app",
+        p: "Use the bottom tab “Rad / CBRN” for threat categories, actor classes, full decon lists, stay-time math concepts, step-by-step explosion timeline, and open nuclear-security news.",
       },
     ],
   },

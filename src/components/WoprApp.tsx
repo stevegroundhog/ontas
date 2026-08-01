@@ -40,6 +40,7 @@ import { LiveStatusBar } from "./LiveStatusBar";
 import { NationPanel } from "./NationPanel";
 import { NavalPanel } from "./NavalPanel";
 import { PlaceSearch } from "./PlaceSearch";
+import { RadiologicalPanel } from "./RadiologicalPanel";
 import { ScenarioPanel } from "./ScenarioPanel";
 import { ThreatNewsFeed } from "./ThreatNewsFeed";
 import { TreatiesPanel } from "./TreatiesPanel";
@@ -54,7 +55,7 @@ type RightTab =
   | "intel"
   | "launches"
   | "scenario";
-type BottomTab = "learn" | "news" | "forces" | "treaties" | "climate";
+type BottomTab = "learn" | "news" | "forces" | "treaties" | "rad" | "climate";
 
 const LEARN_KEY = "ontas-saw-learn";
 
@@ -323,7 +324,7 @@ export function WoprApp() {
               ONTAS · Unclassified open-source fusion
             </div>
             <h1 className="truncate text-lg font-bold text-bright sm:text-xl">
-              Map · Conflicts · Compare · Launches · Treaties
+              Map · Conflicts · Compare · Launches · Rad / CBRN
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
@@ -529,6 +530,13 @@ export function WoprApp() {
           </button>
           <button
             type="button"
+            className={`soft-btn ${bottomTab === "rad" ? "active" : ""}`}
+            onClick={() => setBottomTab("rad")}
+          >
+            Rad / CBRN
+          </button>
+          <button
+            type="button"
             className={`soft-btn ${bottomTab === "climate" ? "active" : ""}`}
             onClick={() => setBottomTab("climate")}
           >
@@ -571,6 +579,7 @@ export function WoprApp() {
             />
           )}
           {bottomTab === "treaties" && <TreatiesPanel />}
+          {bottomTab === "rad" && <RadiologicalPanel />}
           {bottomTab === "climate" && <ClimatePanel />}
         </div>
 

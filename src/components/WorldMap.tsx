@@ -225,6 +225,50 @@ export function WorldMap({
         <rect width={MAP_W} height={MAP_H} fill="url(#oceanVignette)" pointerEvents="none" />
         <rect width={MAP_W} height={MAP_H} fill="url(#grid)" pointerEvents="none" opacity="0.85" />
 
+        {/* Lat/lon graticule (30°) */}
+        <g pointerEvents="none" opacity="0.22" className="graticule">
+          {Array.from({ length: 12 }, (_, i) => {
+            const lon = -180 + i * 30;
+            const a = project(85, lon);
+            const b = project(-85, lon);
+            return (
+              <line
+                key={`lon-${lon}`}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                stroke="#64748b"
+                strokeWidth="0.35"
+              />
+            );
+          })}
+          {Array.from({ length: 7 }, (_, i) => {
+            const lat = -90 + i * 30;
+            const a = project(lat, -180);
+            const b = project(lat, 180);
+            return (
+              <line
+                key={`lat-${lat}`}
+                x1={a.x}
+                y1={a.y}
+                x2={b.x}
+                y2={b.y}
+                stroke="#64748b"
+                strokeWidth={lat === 0 ? 0.6 : 0.35}
+              />
+            );
+          })}
+          <line
+            x1={project(85, 0).x}
+            y1={project(85, 0).y}
+            x2={project(-85, 0).x}
+            y2={project(-85, 0).y}
+            stroke="#38bdf866"
+            strokeWidth="0.5"
+          />
+        </g>
+
         <g>
           {countries.map((c) => {
             const isNuclear = !!c.nuclearId;
@@ -233,8 +277,8 @@ export function WorldMap({
               (selectedIso && c.iso === selectedIso);
             const isHover = hover?.iso === c.iso;
 
-            let fill = "#121c2e";
-            let stroke = "#243656";
+            let fill = "#101a2c";
+            let stroke = "#2a3f5f";
             let sw = 0.35;
             let opacity = 1;
 
@@ -565,7 +609,7 @@ export function WorldMap({
             fontSize="8.5"
             fontFamily="Inter, system-ui, sans-serif"
           >
-            LIVE MAP · {countries.length || "…"} nations · {nuclearCount} nuclear ·{" "}
+            GEOPOLITICAL LIVE MAP · {countries.length || "…"} countries · {nuclearCount} NWS ·{" "}
             {conflicts.length} conflicts
             {selectedConflictId
               ? ` · ${conflicts.find((c) => c.id === selectedConflictId)?.shortName ?? ""}`
