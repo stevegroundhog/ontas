@@ -58,7 +58,6 @@ function loadSection(): AppSection {
   try {
     const s = sessionStorage.getItem(NAV_KEY) as AppSection | null;
     if (s && NAV_ITEMS.some((i) => i.id === s)) return s;
-    if (sessionStorage.getItem(LEARN_KEY) !== "1") return "learn";
   } catch {
     /* ignore */
   }
@@ -423,27 +422,16 @@ export function WoprApp() {
             <DefconBadge state={defcon} onExplain={() => go("learn")} />
             <LiveStatusBar now={now} />
             <div className="rounded-xl border border-border bg-bg/40 p-3 text-[11px] leading-relaxed text-muted">
-              <div className="font-semibold text-bright">Quick find</div>
-              <p className="mt-1">Use the left menu (or jump search) to open any desk without clutter.</p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {(
-                  [
-                    ["conflicts", "Conflicts"],
-                    ["arsenal", "Yields & aircraft"],
-                    ["terror", "Terror history"],
-                    ["rad", "Rad / CBRN"],
-                    ["survive", "Survivability"],
-                    ["learn", "Beginner guide"],
-                  ] as const
-                ).map(([id, label]) => (
-                  <button key={id} type="button" className="soft-btn" onClick={() => go(id)}>
-                    {label}
-                  </button>
-                ))}
-              </div>
+              <div className="font-semibold text-bright">Explore</div>
+              <p className="mt-1">
+                Open <span className="text-fg">Menu</span> for all desks, or use Jump search in the
+                header. Section lists stay off the main screen until you open Menu.
+              </p>
             </div>
             <div className="text-[11px] text-dim">
-              {selectedConflictName ? `Map focus: ${selectedConflictName}` : "Click a conflict or country on the map."}
+              {selectedConflictName
+                ? `Map focus: ${selectedConflictName}`
+                : "Click a conflict or country on the map."}
             </div>
           </div>
         );
@@ -474,11 +462,13 @@ export function WoprApp() {
         <div className="mx-auto flex max-w-[1680px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
           <button
             type="button"
-            className="soft-btn shrink-0 lg:hidden"
+            className="soft-btn shrink-0"
             onClick={() => setNavOpen((v) => !v)}
-            aria-label="Open menu"
+            aria-expanded={navOpen}
+            aria-controls="ontas-main-menu"
+            aria-label={navOpen ? "Close menu" : "Open menu"}
           >
-            Menu
+            {navOpen ? "Close" : "Menu"}
           </button>
           <div className="min-w-0 flex-1">
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-400/90">
@@ -538,14 +528,27 @@ export function WoprApp() {
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1680px]">
-        {/* Sidebar */}
+      <div className="mx-auto max-w-[1680px]">
+        {/* Menu drawer only — never a permanent sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-[min(280px,88vw)] border-r border-border bg-[#0a1220f8] pt-[7.5rem] transition-transform lg:static lg:z-0 lg:block lg:w-[240px] lg:shrink-0 lg:pt-0 ${
-            navOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          id="ontas-main-menu"
+          className={`fixed inset-y-0 left-0 z-40 flex w-[min(300px,90vw)] flex-col border-r border-border bg-[#0a1220fa] shadow-2xl transition-transform duration-200 ease-out ${
+            navOpen ? "translate-x-0" : "pointer-events-none -translate-x-full"
           }`}
+          aria-hidden={!navOpen}
         >
-          <div className="flex h-full flex-col overflow-y-auto px-2 py-3 lg:sticky lg:top-[3.25rem] lg:max-h-[calc(100dvh-3.5rem)]">
+          <div className="flex items-center justify-between border-b border-border px-3 py-3">
+            <div>
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-sky-400">
+                Navigation
+              </div>
+              <div className="text-sm font-bold text-bright">All desks</div>
+            </div>
+            <button type="button" className="soft-btn" onClick={() => setNavOpen(false)}>
+              Close
+            </button>
+          </div>
+          <div className="min-h-0 flex-1 overflow-y-auto px-2 py-3">
             {navGroups().map(({ group, items }) => (
               <div key={group} className="mb-3">
                 <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-dim">
@@ -564,7 +567,7 @@ export function WoprApp() {
                 </div>
               </div>
             ))}
-            <div className="mt-auto border-t border-border px-2 pt-3 text-[10px] leading-relaxed text-dim">
+            <div className="border-t border-border px-2 pt-3 text-[10px] leading-relaxed text-dim">
               Public data only · Not an official warning system
             </div>
           </div>
@@ -573,14 +576,14 @@ export function WoprApp() {
         {navOpen && (
           <button
             type="button"
-            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            className="fixed inset-0 z-30 bg-black/55 backdrop-blur-[1px]"
             aria-label="Close menu"
             onClick={() => setNavOpen(false)}
           />
         )}
 
-        {/* Main */}
-        <main className="min-w-0 flex-1 space-y-3 p-3 sm:p-4">
+        {/* Main — full width */}
+        <main className="min-w-0 space-y-3 p-3 sm:p-4">
           {/* Mobile jump */}
           <div className="relative md:hidden">
             <input
@@ -649,8 +652,8 @@ export function WoprApp() {
             }`}
           >
             {showMap && (
-              <div className="min-w-0 lg:col-span-5">
-                <div className="aspect-[2/1] w-full min-h-[200px] lg:min-h-[min(52vh,480px)]">
+              <div className="min-w-0 lg:col-span-7">
+                <div className="aspect-[2/1] w-full min-h-[220px] lg:min-h-[min(58vh,560px)]">
                   <WorldMap
                     nations={nations}
                     selectedId={selectedId}
@@ -685,7 +688,7 @@ export function WoprApp() {
               </div>
             )}
             <div
-              className={`min-h-[420px] min-w-0 ${showMap ? "lg:col-span-7" : "w-full"}`}
+              className={`min-h-[420px] min-w-0 ${showMap ? "lg:col-span-5" : "w-full"}`}
             >
               {sidePanel}
             </div>

@@ -40,11 +40,11 @@ const SECTIONS: {
   {
     id: "nav",
     title: "How to get around",
-    blurb: "Sidebar groups, jump search, and when the map appears.",
+    blurb: "Menu button, jump search, and when the map appears.",
     body: [
       {
-        h: "Left menu (four groups)",
-        p: "Situational — Live map, Conflicts, Live intel, News desk. Arsenals — Countries, Yields & aircraft, Compare, Ships & subs. Strategic — Launches, Treaties, Scenarios, Climate brief. Protect — Rad / CBRN, Terror history, Survivability, Beginner guide (this page).",
+        h: "Menu (not always on screen)",
+        p: "Tap Menu in the header to open all desks. Groups (Situational, Arsenals, Strategic, Protect) appear only inside that drawer so the main screen stays clean — Live map, Conflicts, Countries, Yields & aircraft, Rad / CBRN, Terror history, and the rest.",
       },
       {
         h: "Jump search",
@@ -55,8 +55,8 @@ const SECTIONS: {
         p: "On map-linked desks you can toggle Conflicts, SSBN estimates, and AIS surface tracks. Click a nuclear country → Countries desk. Click a conflict marker → Conflicts desk.",
       },
       {
-        h: "Mobile",
-        p: "Tap Menu to open the same sidebar. One desk at a time keeps the screen uncluttered.",
+        h: "Phone and desktop",
+        p: "Same Menu drawer on every screen size. One desk at a time keeps the view uncluttered.",
       },
     ],
   },
