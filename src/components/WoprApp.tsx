@@ -541,11 +541,11 @@ export function WoprApp() {
       <div className="mx-auto flex max-w-[1680px]">
         {/* Sidebar */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-[260px] border-r border-border bg-[#0a1220f8] pt-[88px] transition-transform lg:static lg:z-0 lg:block lg:w-[240px] lg:shrink-0 lg:pt-0 ${
+          className={`fixed inset-y-0 left-0 z-40 w-[min(280px,88vw)] border-r border-border bg-[#0a1220f8] pt-[7.5rem] transition-transform lg:static lg:z-0 lg:block lg:w-[240px] lg:shrink-0 lg:pt-0 ${
             navOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
           }`}
         >
-          <div className="flex h-full flex-col overflow-y-auto px-2 py-3 lg:sticky lg:top-[52px] lg:max-h-[calc(100dvh-52px)]">
+          <div className="flex h-full flex-col overflow-y-auto px-2 py-3 lg:sticky lg:top-[3.25rem] lg:max-h-[calc(100dvh-3.5rem)]">
             {navGroups().map(({ group, items }) => (
               <div key={group} className="mb-3">
                 <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-dim">
@@ -692,7 +692,7 @@ export function WoprApp() {
           </div>
 
           <footer className="rounded-xl border border-border bg-panel/60 px-4 py-3 text-[11px] leading-relaxed text-muted">
-            <span className="font-semibold text-bright">ONTAS · final educational build</span>
+            <span className="font-semibold text-bright">ONTAS · educational build</span>
             {" — "}
             Public sensors, open estimates, historical terrorism record, yields/aircraft desks.
             Not official DEFCON, not a warning system. Emergencies: IPAWS/EAS/WEA.{" "}
