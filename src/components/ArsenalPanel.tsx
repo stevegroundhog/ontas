@@ -15,9 +15,12 @@ type Mode = "yields" | "aircraft";
 export function ArsenalPanel({
   nationId,
   onSelectNation,
+  yieldsOnly = false,
 }: {
   nationId: string | null;
   onSelectNation: (id: string) => void;
+  /** When true, hide aircraft tab (used by Warheads & yields desk) */
+  yieldsOnly?: boolean;
 }) {
   const [mode, setMode] = useState<Mode>("yields");
   const [filter, setFilter] = useState<string>(nationId ?? "all");
@@ -34,25 +37,29 @@ export function ArsenalPanel({
 
   return (
     <PanelFrame
-      title="Warhead yields & nuclear-capable aircraft"
+      title={yieldsOnly ? "Warheads & yields" : "Warhead yields & nuclear-capable aircraft"}
       subtitle="Open estimates (kt / Mt). Not official yields. Educational comparison only."
       actions={
-        <>
-          <button
-            type="button"
-            className={`soft-btn ${mode === "yields" ? "active" : ""}`}
-            onClick={() => setMode("yields")}
-          >
-            Yields (kt/Mt)
-          </button>
-          <button
-            type="button"
-            className={`soft-btn ${mode === "aircraft" ? "active" : ""}`}
-            onClick={() => setMode("aircraft")}
-          >
-            Aircraft
-          </button>
-        </>
+        yieldsOnly ? (
+          <span className="chip">Open kt/Mt estimates</span>
+        ) : (
+          <>
+            <button
+              type="button"
+              className={`soft-btn ${mode === "yields" ? "active" : ""}`}
+              onClick={() => setMode("yields")}
+            >
+              Yields (kt/Mt)
+            </button>
+            <button
+              type="button"
+              className={`soft-btn ${mode === "aircraft" ? "active" : ""}`}
+              onClick={() => setMode("aircraft")}
+            >
+              Aircraft
+            </button>
+          </>
+        )
       }
     >
       <div className="space-y-3 p-4">
@@ -75,7 +82,7 @@ export function ArsenalPanel({
           </select>
         </label>
 
-        {mode === "yields" ? (
+        {(yieldsOnly || mode === "yields") ? (
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[640px] text-left text-xs">
               <thead className="bg-black/30 text-[10px] uppercase tracking-wide text-muted">

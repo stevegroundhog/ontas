@@ -43,8 +43,8 @@ const SECTIONS: {
     blurb: "Menu button, jump search, and when the map appears.",
     body: [
       {
-        h: "Left menu + Quick find",
-        p: "On desktop the left sidebar lists every desk by group. On Live map, Quick find shows the same full list as buttons. On phones, open Menu for the sidebar.",
+        h: "Quick find (no side menu)",
+        p: "Every desk is under Quick find on Live map, grouped Situational / Arsenals / Strategic / Protect. Warheads & yields are together; Ships, subs & aircraft are together. Header has Live map, Beginner guide, and Essay — use Live map anytime to return home.",
       },
       {
         h: "Jump search",

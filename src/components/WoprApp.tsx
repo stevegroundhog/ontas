@@ -27,28 +27,27 @@ import type { SubPosition } from "@/data/naval-deployments";
 import {
   type AppSection,
   NAV_ITEMS,
-  NavButton,
-  navGroups,
+  QuickFind,
 } from "./AppNav";
-import { ArsenalPanel } from "./ArsenalPanel";
 import { BootScreen } from "./BootScreen";
 import { ClimatePanel } from "./ClimatePanel";
 import { ComparePanel } from "./ComparePanel";
 import { ConflictsPanel } from "./ConflictsPanel";
 import { DefconBadge } from "./DefconBadge";
+import { FleetPanel } from "./FleetPanel";
 import { ForceTable } from "./ForceTable";
 import { IntelPanel } from "./IntelPanel";
 import { LaunchesPanel } from "./LaunchesPanel";
 import { LearnPanel } from "./LearnPanel";
 import { LiveStatusBar } from "./LiveStatusBar";
 import { NationPanel } from "./NationPanel";
-import { NavalPanel } from "./NavalPanel";
 import { PlaceSearch } from "./PlaceSearch";
 import { RadiologicalPanel } from "./RadiologicalPanel";
 import { ScenarioPanel } from "./ScenarioPanel";
 import { TerrorHistoryPanel } from "./TerrorHistoryPanel";
 import { ThreatNewsFeed } from "./ThreatNewsFeed";
 import { TreatiesPanel } from "./TreatiesPanel";
+import { WarheadsPanel } from "./WarheadsPanel";
 import { WorldMap } from "./WorldMap";
 
 const LEARN_KEY = "ontas-saw-learn";
@@ -67,7 +66,6 @@ function loadSection(): AppSection {
 export function WoprApp() {
   const [booted, setBooted] = useState(false);
   const [section, setSection] = useState<AppSection>(loadSection);
-  const [navOpen, setNavOpen] = useState(false);
   const [jump, setJump] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>("us");
   const [compareLeft, setCompareLeft] = useState("us");
@@ -106,7 +104,6 @@ export function WoprApp() {
 
   const go = useCallback((s: AppSection) => {
     setSection(s);
-    setNavOpen(false);
     try {
       sessionStorage.setItem(NAV_KEY, s);
       if (s === "learn") sessionStorage.setItem(LEARN_KEY, "1");
@@ -321,7 +318,7 @@ export function WoprApp() {
         );
       case "arsenal":
         return (
-          <ArsenalPanel
+          <WarheadsPanel
             nationId={selectedId}
             onSelectNation={(id) => {
               setSelectedId(id);
@@ -342,7 +339,7 @@ export function WoprApp() {
         );
       case "maritime":
         return (
-          <NavalPanel
+          <FleetPanel
             units={units}
             subs={subs}
             ais={ais}
@@ -351,6 +348,8 @@ export function WoprApp() {
             selectedSubId={selectedSubId}
             onSelectSub={setSelectedSubId}
             now={now}
+            nationId={selectedId}
+            onSelectNation={(id) => setSelectedId(id)}
           />
         );
       case "launches":
@@ -421,34 +420,7 @@ export function WoprApp() {
           <div className="crt-panel flex h-full flex-col gap-3 overflow-y-auto p-4">
             <DefconBadge state={defcon} onExplain={() => go("learn")} />
             <LiveStatusBar now={now} />
-            <div className="rounded-xl border border-border bg-bg/40 p-3 text-[11px] leading-relaxed text-muted">
-              <div className="font-semibold text-bright">Quick find</div>
-              <p className="mt-1">
-                Open any desk below. The left menu lists the same places by group.
-              </p>
-              <div className="mt-3 space-y-3">
-                {navGroups().map(({ group, items }) => (
-                  <div key={group}>
-                    <div className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-dim">
-                      {group}
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {items.map((item) => (
-                        <button
-                          key={item.id}
-                          type="button"
-                          className={`soft-btn ${section === item.id ? "active" : ""}`}
-                          title={item.hint}
-                          onClick={() => go(item.id)}
-                        >
-                          {item.label}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <QuickFind section={section} onGo={go} />
             <div className="text-[11px] text-dim">
               {selectedConflictName
                 ? `Map focus: ${selectedConflictName}`
@@ -480,29 +452,44 @@ export function WoprApp() {
 
       {/* Top bar */}
       <header className="sticky top-0 z-30 border-b border-border bg-[#0b1220f2] backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1680px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
+        <div className="mx-auto flex max-w-[1680px] flex-wrap items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
           <button
             type="button"
-            className="soft-btn shrink-0 lg:hidden"
-            onClick={() => setNavOpen((v) => !v)}
-            aria-expanded={navOpen}
-            aria-controls="ontas-main-menu"
-            aria-label={navOpen ? "Close menu" : "Open menu"}
+            className={`soft-btn shrink-0 ${section === "map" ? "active" : ""}`}
+            onClick={() => go("map")}
+            title="Return to main live map"
           >
-            {navOpen ? "Close" : "Menu"}
+            Live map
           </button>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0">
             <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-400/90">
               ONTAS
             </div>
             <div className="truncate text-sm font-bold text-bright sm:text-base">
-              {sectionMeta?.label ?? "Dashboard"}
-              <span className="ml-2 hidden font-normal text-muted sm:inline">
-                · {sectionMeta?.hint}
-              </span>
+              Live Map
+              {section !== "map" && sectionMeta ? (
+                <span className="ml-2 font-normal text-muted">· {sectionMeta.label}</span>
+              ) : (
+                <span className="ml-2 hidden font-normal text-muted sm:inline">
+                  · world overview
+                </span>
+              )}
             </div>
           </div>
-          <div className="relative hidden min-w-[200px] max-w-xs flex-1 md:block">
+          <button
+            type="button"
+            className={`soft-btn shrink-0 ${section === "learn" ? "active" : ""}`}
+            onClick={() => go("learn")}
+          >
+            Beginner guide
+          </button>
+          <Link
+            to="/article"
+            className="soft-btn shrink-0"
+          >
+            Essay
+          </Link>
+          <div className="relative hidden min-w-[160px] max-w-xs flex-1 md:block">
             <input
               value={jump}
               onChange={(e) => setJump(e.target.value)}
@@ -532,7 +519,7 @@ export function WoprApp() {
               </ul>
             )}
           </div>
-          <span className="chip tabular hidden text-fg sm:inline">{clock}</span>
+          <span className="chip tabular hidden text-fg lg:inline">{clock}</span>
           <span className="chip hidden sm:inline">{formatNum(GLOBAL_TOTAL_INVENTORY)} warheads</span>
           <span
             className="chip"
@@ -543,63 +530,30 @@ export function WoprApp() {
           >
             {linkLive ? "● LIVE" : "○ …"}
           </span>
-          <Link to="/article" className="soft-btn hidden sm:inline-flex">
-            Essay
-          </Link>
         </div>
       </header>
 
-      <div className="mx-auto flex max-w-[1680px]">
-        {/* Permanent sidebar (desktop) + drawer on mobile */}
-        <aside
-          id="ontas-main-menu"
-          className={`fixed inset-y-0 left-0 z-40 w-[min(280px,88vw)] border-r border-border bg-[#0a1220f8] pt-[7.5rem] transition-transform lg:static lg:z-0 lg:block lg:w-[240px] lg:shrink-0 lg:pt-0 ${
-            navOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-          }`}
-        >
-          <div className="flex h-full flex-col overflow-y-auto px-2 py-3 lg:sticky lg:top-[3.25rem] lg:max-h-[calc(100dvh-3.5rem)]">
-            <div className="mb-2 flex items-center justify-between px-2 lg:hidden">
-              <div className="text-xs font-bold text-bright">Menu</div>
-              <button type="button" className="soft-btn" onClick={() => setNavOpen(false)}>
-                Close
-              </button>
-            </div>
-            {navGroups().map(({ group, items }) => (
-              <div key={group} className="mb-3">
-                <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-dim">
-                  {group}
-                </div>
-                <div className="space-y-0.5">
-                  {items.map((item) => (
-                    <NavButton
-                      key={item.id}
-                      active={section === item.id}
-                      label={item.label}
-                      hint={item.hint}
-                      onClick={() => go(item.id)}
-                    />
-                  ))}
-                </div>
+      <div className="mx-auto max-w-[1680px]">
+        <main className="min-w-0 space-y-3 p-3 sm:p-4">
+          {/* Always-visible quick find (compact when not on map home) */}
+          {section !== "map" && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  className="soft-btn active"
+                  onClick={() => go("map")}
+                >
+                  ← Live map
+                </button>
+                <span className="text-[11px] text-muted">
+                  Viewing <span className="font-semibold text-bright">{sectionMeta?.label}</span>
+                </span>
               </div>
-            ))}
-            <div className="mt-auto border-t border-border px-2 pt-3 text-[10px] leading-relaxed text-dim">
-              Public data only · Not an official warning system
+              <QuickFind section={section} onGo={go} compact />
             </div>
-          </div>
-        </aside>
+          )}
 
-        {navOpen && (
-          <button
-            type="button"
-            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
-            aria-label="Close menu"
-            onClick={() => setNavOpen(false)}
-          />
-        )}
-
-        {/* Main */}
-        <main className="min-w-0 flex-1 space-y-3 p-3 sm:p-4">
-          {/* Mobile jump */}
           <div className="relative md:hidden">
             <input
               value={jump}
@@ -653,11 +607,9 @@ export function WoprApp() {
               >
                 AIS
               </button>
-              {section !== "map" && (
-                <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
-                  Map home
-                </button>
-              )}
+              <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
+                ← Live map
+              </button>
             </div>
           )}
 
@@ -667,8 +619,8 @@ export function WoprApp() {
             }`}
           >
             {showMap && (
-              <div className="min-w-0 lg:col-span-5">
-                <div className="aspect-[2/1] w-full min-h-[200px] lg:min-h-[min(52vh,480px)]">
+              <div className="min-w-0 lg:col-span-7">
+                <div className="aspect-[2/1] w-full min-h-[220px] lg:min-h-[min(58vh,560px)]">
                   <WorldMap
                     nations={nations}
                     selectedId={selectedId}
@@ -703,7 +655,7 @@ export function WoprApp() {
               </div>
             )}
             <div
-              className={`min-h-[420px] min-w-0 ${showMap ? "lg:col-span-7" : "w-full"}`}
+              className={`min-h-[420px] min-w-0 ${showMap ? "lg:col-span-5" : "w-full"}`}
             >
               {sidePanel}
             </div>
