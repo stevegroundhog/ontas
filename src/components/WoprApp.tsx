@@ -607,9 +607,11 @@ export function WoprApp() {
               >
                 AIS
               </button>
-              <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
-                ← Live map
-              </button>
+              {section !== "map" && (
+                <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
+                  ← Live map
+                </button>
+              )}
             </div>
           )}
 
