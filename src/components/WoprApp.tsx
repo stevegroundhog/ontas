@@ -16,10 +16,7 @@ import { formatNum } from "@/lib/utils";
 import type { LiveNewsItem } from "@/server/nuclear-news";
 import { fetchOsintDefcon, type OsintDefcon } from "@/server/defcon-osint";
 import type { PlaceHit } from "@/server/geocode";
-import {
-  fetchMaritimeSnapshot,
-  type AisContact,
-} from "@/server/maritime";
+import { fetchMaritimeSnapshot, type AisContact } from "@/server/maritime";
 import {
   fetchThreatIntel,
   type DataSourceStatus,
@@ -27,6 +24,13 @@ import {
   type SeismicEvent,
 } from "@/server/threat-intel";
 import type { SubPosition } from "@/data/naval-deployments";
+import {
+  type AppSection,
+  NAV_ITEMS,
+  NavButton,
+  navGroups,
+} from "./AppNav";
+import { ArsenalPanel } from "./ArsenalPanel";
 import { BootScreen } from "./BootScreen";
 import { ClimatePanel } from "./ClimatePanel";
 import { ComparePanel } from "./ComparePanel";
@@ -42,25 +46,30 @@ import { NavalPanel } from "./NavalPanel";
 import { PlaceSearch } from "./PlaceSearch";
 import { RadiologicalPanel } from "./RadiologicalPanel";
 import { ScenarioPanel } from "./ScenarioPanel";
+import { TerrorHistoryPanel } from "./TerrorHistoryPanel";
 import { ThreatNewsFeed } from "./ThreatNewsFeed";
 import { TreatiesPanel } from "./TreatiesPanel";
 import { WorldMap } from "./WorldMap";
 
-type RightTab =
-  | "conflicts"
-  | "search"
-  | "compare"
-  | "nation"
-  | "naval"
-  | "intel"
-  | "launches"
-  | "scenario";
-type BottomTab = "learn" | "news" | "forces" | "treaties" | "rad" | "climate";
-
 const LEARN_KEY = "ontas-saw-learn";
+const NAV_KEY = "ontas-section";
+
+function loadSection(): AppSection {
+  try {
+    const s = sessionStorage.getItem(NAV_KEY) as AppSection | null;
+    if (s && NAV_ITEMS.some((i) => i.id === s)) return s;
+    if (sessionStorage.getItem(LEARN_KEY) !== "1") return "learn";
+  } catch {
+    /* ignore */
+  }
+  return "map";
+}
 
 export function WoprApp() {
   const [booted, setBooted] = useState(false);
+  const [section, setSection] = useState<AppSection>(loadSection);
+  const [navOpen, setNavOpen] = useState(false);
+  const [jump, setJump] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>("us");
   const [compareLeft, setCompareLeft] = useState("us");
   const [compareRight, setCompareRight] = useState("ru");
@@ -69,14 +78,6 @@ export function WoprApp() {
   const [animating, setAnimating] = useState(false);
   const [clock, setClock] = useState(() => formatZulu(new Date()));
   const [now, setNow] = useState(() => Date.now());
-  const [rightTab, setRightTab] = useState<RightTab>("conflicts");
-  const [bottomTab, setBottomTab] = useState<BottomTab>(() => {
-    try {
-      return sessionStorage.getItem(LEARN_KEY) === "1" ? "news" : "learn";
-    } catch {
-      return "learn";
-    }
-  });
 
   const [news, setNews] = useState<LiveNewsItem[]>([]);
   const [newsMeta, setNewsMeta] = useState({ feedCount: 0, fetchedAt: null as string | null });
@@ -103,6 +104,17 @@ export function WoprApp() {
   const [searchedPlace, setSearchedPlace] = useState<PlaceHit | null>(null);
   const [survivalProfile, setSurvivalProfile] = useState<SurvivalProfile | null>(null);
   const [selectedConflictId, setSelectedConflictId] = useState<string | null>(null);
+
+  const go = useCallback((s: AppSection) => {
+    setSection(s);
+    setNavOpen(false);
+    try {
+      sessionStorage.setItem(NAV_KEY, s);
+      if (s === "learn") sessionStorage.setItem(LEARN_KEY, "1");
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     const t = window.setInterval(() => {
@@ -144,7 +156,7 @@ export function WoprApp() {
         const d = await fetchOsintDefcon();
         if (!cancelled) setOsint(d);
       } catch {
-        /* keep last */
+        /* keep */
       }
     };
     void pull();
@@ -233,19 +245,18 @@ export function WoprApp() {
     [selectedId],
   );
 
-  const onBootDone = useCallback(() => setBooted(true), []);
+  const jumpResults = useMemo(() => {
+    const q = jump.trim().toLowerCase();
+    if (q.length < 1) return [];
+    return NAV_ITEMS.filter(
+      (i) =>
+        i.label.toLowerCase().includes(q) ||
+        i.hint.toLowerCase().includes(q) ||
+        i.group.toLowerCase().includes(q),
+    ).slice(0, 8);
+  }, [jump]);
 
-  const openLearn = useCallback(() => {
-    setBottomTab("learn");
-    try {
-      sessionStorage.setItem(LEARN_KEY, "1");
-    } catch {
-      /* ignore */
-    }
-    window.requestAnimationFrame(() => {
-      document.getElementById("ontas-learn")?.scrollIntoView({ behavior: "smooth", block: "start" });
-    });
-  }, []);
+  const onBootDone = useCallback(() => setBooted(true), []);
 
   const onRun = useCallback(() => {
     if (scenario.trajectories.length === 0) {
@@ -256,346 +267,437 @@ export function WoprApp() {
     window.setTimeout(() => setAnimating(false), 4500);
   }, [scenario.trajectories.length]);
 
-  const onScenarioSelect = useCallback((id: string) => {
-    setScenarioId(id);
-    setAnimating(false);
-    setRightTab("scenario");
-    const sc = scenarios.find((s) => s.id === id);
-    if (sc?.actors[0]) setSelectedId(sc.actors[0]);
-  }, []);
+  const onScenarioSelect = useCallback(
+    (id: string) => {
+      setScenarioId(id);
+      setAnimating(false);
+      go("scenarios");
+      const sc = scenarios.find((s) => s.id === id);
+      if (sc?.actors[0]) setSelectedId(sc.actors[0]);
+    },
+    [go],
+  );
 
   if (!booted) {
     return <BootScreen onDone={onBootDone} />;
   }
 
-  const tabs: { id: RightTab; label: string }[] = [
-    { id: "conflicts", label: "Conflicts" },
-    { id: "search", label: "Survivability" },
-    { id: "compare", label: "Compare" },
-    { id: "launches", label: "Launches" },
-    { id: "naval", label: "Ships" },
-    { id: "intel", label: "Intel" },
-    { id: "nation", label: "Country" },
-    { id: "scenario", label: "Scenarios" },
-  ];
-
   const selectedConflictName = ARMED_CONFLICTS.find((c) => c.id === selectedConflictId)?.shortName;
-  const liveBits = [
-    news.length ? `${news.length} news` : null,
-    seismic.length ? `${seismic.length} quakes` : null,
-    ais.length ? `${ais.length} AIS` : null,
-    official.length ? `${official.length} wires` : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const sectionMeta = NAV_ITEMS.find((i) => i.id === section);
+  const showMap =
+    section === "map" ||
+    section === "conflicts" ||
+    section === "forces" ||
+    section === "maritime" ||
+    section === "survive" ||
+    section === "scenarios";
 
-  return (
-    <div className="relative min-h-dvh text-fg">
-      <div
-        className="border-b px-3 py-2 text-center text-xs font-semibold sm:text-sm"
-        style={{
-          background: `${defcon.color}22`,
-          borderColor: defcon.color,
-          color: defcon.color,
-        }}
-      >
-        Unofficial OSINT DEFCON {defcon.level} ({defcon.label}) · public data only
-        {selectedConflictName ? ` · Focus: ${selectedConflictName}` : ""} ·{" "}
-        <button
-          type="button"
-          onClick={openLearn}
-          className="underline decoration-dotted underline-offset-2 hover:text-bright"
-        >
-          What does DEFCON mean?
-        </button>
-        {" · "}
-        <Link
-          to="/article"
-          className="underline decoration-dotted underline-offset-2 hover:text-bright"
-        >
-          Read the essay
-        </Link>
-      </div>
-
-      <header className="sticky top-0 z-20 border-b border-border bg-[#0b1220ee] backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-3 px-3 py-3 sm:px-4">
-          <div className="min-w-0 flex-1">
-            <div className="text-[11px] font-semibold uppercase tracking-wider text-sky-400/90">
-              ONTAS · Unclassified open-source fusion
+  const sidePanel = (() => {
+    switch (section) {
+      case "conflicts":
+        return (
+          <ConflictsPanel
+            selectedId={selectedConflictId}
+            onSelect={setSelectedConflictId}
+            now={now}
+          />
+        );
+      case "forces":
+        return (
+          <div className="flex h-full min-h-0 flex-col gap-3">
+            <div className="min-h-[280px] flex-1">
+              <NationPanel nation={selected} />
             </div>
-            <h1 className="truncate text-lg font-bold text-bright sm:text-xl">
-              Map · Conflicts · Compare · Launches · Rad / CBRN
-            </h1>
-          </div>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
-            <Link to="/article" className="soft-btn">
-              Essay
-            </Link>
-            <button type="button" className="soft-btn active" onClick={openLearn}>
-              Beginner guide
-            </button>
-            <span className="chip tabular text-fg">{clock}</span>
-            <span className="chip">{formatNum(GLOBAL_TOTAL_INVENTORY)} warheads</span>
-            {liveBits && (
-              <span className="chip" style={{ borderColor: "#34d399", color: "#6ee7b7" }}>
-                {liveBits}
-              </span>
-            )}
-            <span
-              className="chip"
-              style={{
-                borderColor: linkLive ? "#34d399" : "#fbbf24",
-                color: linkLive ? "#6ee7b7" : "#fcd34d",
-              }}
-            >
-              {linkLive ? "● LIVE" : "○ reconnecting"}
-            </span>
-          </div>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-[1600px] space-y-3 p-3 sm:p-4">
-        <LiveStatusBar now={now} />
-
-        <div className="grid gap-3 lg:grid-cols-12">
-          <div className="min-w-0 lg:col-span-4">
-            <DefconBadge state={defcon} onExplain={openLearn} />
-          </div>
-          <div className="crt-panel flex min-w-0 flex-wrap items-center gap-2 px-3 py-3 lg:col-span-8">
-            <span className="text-xs font-semibold text-muted">Map layers</span>
-            <button
-              type="button"
-              className={`soft-btn ${showConflicts ? "active" : ""}`}
-              onClick={() => setShowConflicts((v) => !v)}
-            >
-              Conflicts {showConflicts ? "on" : "off"}
-            </button>
-            <button
-              type="button"
-              className={`soft-btn ${showSubs ? "active" : ""}`}
-              onClick={() => setShowSubs((v) => !v)}
-            >
-              SSBN {showSubs ? "on" : "off"}
-            </button>
-            <button
-              type="button"
-              className={`soft-btn ${showAis ? "active" : ""}`}
-              onClick={() => setShowAis((v) => !v)}
-            >
-              AIS {showAis ? "on" : "off"}
-            </button>
-            <div className="ml-auto flex max-w-full flex-wrap gap-1.5">
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`soft-btn ${rightTab === t.id ? "active" : ""}`}
-                  onClick={() => setRightTab(t.id)}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        <div className="grid gap-3 lg:grid-cols-12">
-          <div className="relative z-0 min-w-0 overflow-hidden lg:col-span-5">
-            <div className="aspect-[2/1] w-full min-h-[220px] lg:min-h-[420px]">
-              <WorldMap
+            <div className="max-h-[240px] min-h-[160px]">
+              <ForceTable
                 nations={nations}
                 selectedId={selectedId}
                 onSelect={(id) => {
                   setSelectedId(id);
-                  setRightTab("nation");
+                  go("forces");
                 }}
-                scenario={scenario}
-                animating={animating}
-                showSites
-                showSubs={showSubs}
-                showAis={showAis}
-                showConflicts={showConflicts}
-                subs={subs}
-                homePorts={HOME_PORTS}
-                ais={ais}
-                selectedSubId={selectedSubId}
-                onSelectSub={(id) => {
-                  setSelectedSubId(id);
-                  if (id) setRightTab("naval");
-                }}
-                seismic={seismic}
-                searchedPlace={searchedPlace}
-                selectedConflictId={selectedConflictId}
-                onSelectConflict={(id) => {
-                  setSelectedConflictId(id);
-                  setRightTab("conflicts");
-                }}
-                conflicts={ARMED_CONFLICTS}
               />
             </div>
           </div>
-          <div className="relative z-10 min-h-[380px] min-w-0 lg:col-span-7 lg:min-h-[420px]">
-            {rightTab === "conflicts" && (
-              <ConflictsPanel
-                selectedId={selectedConflictId}
-                onSelect={setSelectedConflictId}
-                now={now}
-              />
-            )}
-            {rightTab === "search" && (
-              <PlaceSearch
-                selectedPlace={searchedPlace}
-                profile={survivalProfile}
-                onSelectPlace={(place, profile) => {
-                  setSearchedPlace(place);
-                  setSurvivalProfile(profile);
-                }}
-              />
-            )}
-            {rightTab === "compare" && (
-              <ComparePanel
-                leftId={compareLeft}
-                rightId={compareRight}
-                onChangeLeft={(id) => {
-                  setCompareLeft(id);
-                  setSelectedId(id);
-                }}
-                onChangeRight={setCompareRight}
-              />
-            )}
-            {rightTab === "launches" && <LaunchesPanel />}
-            {rightTab === "naval" && (
-              <NavalPanel
-                units={units}
-                subs={subs}
-                ais={ais}
-                aisSource={aisSource}
-                fetchedAt={maritimeAt}
-                selectedSubId={selectedSubId}
-                onSelectSub={setSelectedSubId}
-                now={now}
-              />
-            )}
-            {rightTab === "intel" && (
-              <IntelPanel
-                seismic={seismic}
-                official={official}
-                sources={sources}
-                fetchedAt={intelAt}
-                now={now}
-                disclaimer={disclaimer}
-              />
-            )}
-            {rightTab === "nation" && <NationPanel nation={selected} />}
-            {rightTab === "scenario" && (
-              <ScenarioPanel
-                scenarios={scenarios}
-                active={scenario}
-                onSelect={onScenarioSelect}
-                animating={animating}
-                onRun={onRun}
-              />
+        );
+      case "arsenal":
+        return (
+          <ArsenalPanel
+            nationId={selectedId}
+            onSelectNation={(id) => {
+              setSelectedId(id);
+            }}
+          />
+        );
+      case "compare":
+        return (
+          <ComparePanel
+            leftId={compareLeft}
+            rightId={compareRight}
+            onChangeLeft={(id) => {
+              setCompareLeft(id);
+              setSelectedId(id);
+            }}
+            onChangeRight={setCompareRight}
+          />
+        );
+      case "maritime":
+        return (
+          <NavalPanel
+            units={units}
+            subs={subs}
+            ais={ais}
+            aisSource={aisSource}
+            fetchedAt={maritimeAt}
+            selectedSubId={selectedSubId}
+            onSelectSub={setSelectedSubId}
+            now={now}
+          />
+        );
+      case "launches":
+        return <LaunchesPanel />;
+      case "treaties":
+        return <TreatiesPanel />;
+      case "rad":
+        return <RadiologicalPanel />;
+      case "terror":
+        return <TerrorHistoryPanel />;
+      case "survive":
+        return (
+          <PlaceSearch
+            selectedPlace={searchedPlace}
+            profile={survivalProfile}
+            onSelectPlace={(place, profile) => {
+              setSearchedPlace(place);
+              setSurvivalProfile(profile);
+            }}
+          />
+        );
+      case "intel":
+        return (
+          <IntelPanel
+            seismic={seismic}
+            official={official}
+            sources={sources}
+            fetchedAt={intelAt}
+            now={now}
+            disclaimer={disclaimer}
+          />
+        );
+      case "news":
+        return (
+          <ThreatNewsFeed
+            filterNationId={newsFilterId}
+            onSelectNation={(id) => {
+              if (!id) {
+                setNewsFilterId(null);
+                return;
+              }
+              setNewsFilterId(id);
+              setSelectedId(id);
+              go("forces");
+            }}
+            externalItems={news}
+            externalFetchedAt={newsMeta.fetchedAt}
+            externalFeedCount={newsMeta.feedCount}
+          />
+        );
+      case "learn":
+        return <LearnPanel />;
+      case "scenarios":
+        return (
+          <ScenarioPanel
+            scenarios={scenarios}
+            active={scenario}
+            onSelect={onScenarioSelect}
+            animating={animating}
+            onRun={onRun}
+          />
+        );
+      case "climate":
+        return <ClimatePanel />;
+      case "map":
+      default:
+        return (
+          <div className="crt-panel flex h-full flex-col gap-3 overflow-y-auto p-4">
+            <DefconBadge state={defcon} onExplain={() => go("learn")} />
+            <LiveStatusBar now={now} />
+            <div className="rounded-xl border border-border bg-bg/40 p-3 text-[11px] leading-relaxed text-muted">
+              <div className="font-semibold text-bright">Quick find</div>
+              <p className="mt-1">Use the left menu (or jump search) to open any desk without clutter.</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {(
+                  [
+                    ["conflicts", "Conflicts"],
+                    ["arsenal", "Yields & aircraft"],
+                    ["terror", "Terror history"],
+                    ["rad", "Rad / CBRN"],
+                    ["survive", "Survivability"],
+                    ["learn", "Beginner guide"],
+                  ] as const
+                ).map(([id, label]) => (
+                  <button key={id} type="button" className="soft-btn" onClick={() => go(id)}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="text-[11px] text-dim">
+              {selectedConflictName ? `Map focus: ${selectedConflictName}` : "Click a conflict or country on the map."}
+            </div>
+          </div>
+        );
+    }
+  })();
+
+  return (
+    <div className="relative min-h-dvh text-fg">
+      {/* DEFCON strip */}
+      <div
+        className="border-b px-3 py-1.5 text-center text-[11px] font-semibold sm:text-xs"
+        style={{
+          background: `${defcon.color}18`,
+          borderColor: defcon.color,
+          color: defcon.color,
+        }}
+      >
+        Unofficial OSINT DEFCON {defcon.level} ({defcon.label}) · educational only
+        {selectedConflictName ? ` · ${selectedConflictName}` : ""}
+        {" · "}
+        <button type="button" className="underline decoration-dotted" onClick={() => go("learn")}>
+          What is DEFCON?
+        </button>
+      </div>
+
+      {/* Top bar */}
+      <header className="sticky top-0 z-30 border-b border-border bg-[#0b1220f2] backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1680px] items-center gap-2 px-3 py-2.5 sm:gap-3 sm:px-4">
+          <button
+            type="button"
+            className="soft-btn shrink-0 lg:hidden"
+            onClick={() => setNavOpen((v) => !v)}
+            aria-label="Open menu"
+          >
+            Menu
+          </button>
+          <div className="min-w-0 flex-1">
+            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-sky-400/90">
+              ONTAS
+            </div>
+            <div className="truncate text-sm font-bold text-bright sm:text-base">
+              {sectionMeta?.label ?? "Dashboard"}
+              <span className="ml-2 hidden font-normal text-muted sm:inline">
+                · {sectionMeta?.hint}
+              </span>
+            </div>
+          </div>
+          <div className="relative hidden min-w-[200px] max-w-xs flex-1 md:block">
+            <input
+              value={jump}
+              onChange={(e) => setJump(e.target.value)}
+              placeholder="Jump to… conflicts, yields, terror"
+              className="w-full rounded-full border border-border bg-bg/80 px-3 py-2 text-xs text-fg outline-none placeholder:text-dim focus:border-sky-500/50"
+              aria-label="Jump to section"
+            />
+            {jumpResults.length > 0 && (
+              <ul className="absolute left-0 right-0 top-full z-40 mt-1 overflow-hidden rounded-xl border border-border bg-panel shadow-xl">
+                {jumpResults.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="flex w-full flex-col px-3 py-2 text-left text-xs hover:bg-white/5"
+                      onClick={() => {
+                        go(item.id);
+                        setJump("");
+                      }}
+                    >
+                      <span className="font-semibold text-bright">{item.label}</span>
+                      <span className="text-[10px] text-muted">
+                        {item.group} · {item.hint}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
           </div>
-        </div>
-
-        <div id="ontas-learn" className="flex flex-wrap items-center gap-2 scroll-mt-24">
-          <button
-            type="button"
-            className={`soft-btn ${bottomTab === "learn" ? "active" : ""}`}
-            onClick={openLearn}
+          <span className="chip tabular hidden text-fg sm:inline">{clock}</span>
+          <span className="chip hidden sm:inline">{formatNum(GLOBAL_TOTAL_INVENTORY)} warheads</span>
+          <span
+            className="chip"
+            style={{
+              borderColor: linkLive ? "#34d399" : "#fbbf24",
+              color: linkLive ? "#6ee7b7" : "#fcd34d",
+            }}
           >
-            Beginner guide
-          </button>
-          <button
-            type="button"
-            className={`soft-btn ${bottomTab === "news" ? "active" : ""}`}
-            onClick={() => setBottomTab("news")}
-          >
-            Live news {news.length ? `(${news.length})` : ""}
-          </button>
-          <button
-            type="button"
-            className={`soft-btn ${bottomTab === "forces" ? "active" : ""}`}
-            onClick={() => setBottomTab("forces")}
-          >
-            Nuclear forces
-          </button>
-          <button
-            type="button"
-            className={`soft-btn ${bottomTab === "treaties" ? "active" : ""}`}
-            onClick={() => setBottomTab("treaties")}
-          >
-            Treaties
-          </button>
-          <button
-            type="button"
-            className={`soft-btn ${bottomTab === "rad" ? "active" : ""}`}
-            onClick={() => setBottomTab("rad")}
-          >
-            Rad / CBRN
-          </button>
-          <button
-            type="button"
-            className={`soft-btn ${bottomTab === "climate" ? "active" : ""}`}
-            onClick={() => setBottomTab("climate")}
-          >
-            Strategic climate
-          </button>
-          <span className="ml-auto text-xs text-muted">
-            OSINT D{defcon.osintLevel} → display D{defcon.level}
-            {newsMeta.feedCount ? ` · ${newsMeta.feedCount} news feeds` : ""}
-            {ais.length ? ` · ${ais.length} AIS` : ""}
+            {linkLive ? "● LIVE" : "○ …"}
           </span>
+          <Link to="/article" className="soft-btn hidden sm:inline-flex">
+            Essay
+          </Link>
         </div>
+      </header>
 
-        <div className="min-h-[320px] lg:min-h-[380px]">
-          {bottomTab === "learn" && <LearnPanel />}
-          {bottomTab === "news" && (
-            <ThreatNewsFeed
-              filterNationId={newsFilterId}
-              onSelectNation={(id) => {
-                if (!id) {
-                  setNewsFilterId(null);
-                  return;
-                }
-                setNewsFilterId(id);
-                setSelectedId(id);
-                setRightTab("nation");
-              }}
-              externalItems={news}
-              externalFetchedAt={newsMeta.fetchedAt}
-              externalFeedCount={newsMeta.feedCount}
-            />
-          )}
-          {bottomTab === "forces" && (
-            <ForceTable
-              nations={nations}
-              selectedId={selectedId}
-              onSelect={(id) => {
-                setSelectedId(id);
-                setRightTab("nation");
-              }}
-            />
-          )}
-          {bottomTab === "treaties" && <TreatiesPanel />}
-          {bottomTab === "rad" && <RadiologicalPanel />}
-          {bottomTab === "climate" && <ClimatePanel />}
-        </div>
+      <div className="mx-auto flex max-w-[1680px]">
+        {/* Sidebar */}
+        <aside
+          className={`fixed inset-y-0 left-0 z-40 w-[260px] border-r border-border bg-[#0a1220f8] pt-[88px] transition-transform lg:static lg:z-0 lg:block lg:w-[240px] lg:shrink-0 lg:pt-0 ${
+            navOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          }`}
+        >
+          <div className="flex h-full flex-col overflow-y-auto px-2 py-3 lg:sticky lg:top-[52px] lg:max-h-[calc(100dvh-52px)]">
+            {navGroups().map(({ group, items }) => (
+              <div key={group} className="mb-3">
+                <div className="px-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-dim">
+                  {group}
+                </div>
+                <div className="space-y-0.5">
+                  {items.map((item) => (
+                    <NavButton
+                      key={item.id}
+                      active={section === item.id}
+                      label={item.label}
+                      hint={item.hint}
+                      onClick={() => go(item.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+            <div className="mt-auto border-t border-border px-2 pt-3 text-[10px] leading-relaxed text-dim">
+              Public data only · Not an official warning system
+            </div>
+          </div>
+        </aside>
 
-        <footer className="crt-panel px-4 py-3 text-xs leading-relaxed text-muted">
-          <div className="font-semibold text-bright">Unclassified realtime scope</div>
-          <p className="mt-1">
-            Live: USGS, UN/DoD/IAEA RSS, news mesh, BBC/UN conflict wires, Finnish AIS, OSM geocode,
-            launch-news mesh, DEFCON OSINT. Curated: treaty timeline, launch calendar, fatality
-            ranges (contested open estimates). Not live: official DEFCON, submerged SSBNs,
-            classified C2. Educational only.{" "}
-            <button type="button" className="text-sky-300 underline" onClick={openLearn}>
-              Beginner guide
-            </button>
-            {" · "}
+        {navOpen && (
+          <button
+            type="button"
+            className="fixed inset-0 z-30 bg-black/50 lg:hidden"
+            aria-label="Close menu"
+            onClick={() => setNavOpen(false)}
+          />
+        )}
+
+        {/* Main */}
+        <main className="min-w-0 flex-1 space-y-3 p-3 sm:p-4">
+          {/* Mobile jump */}
+          <div className="relative md:hidden">
+            <input
+              value={jump}
+              onChange={(e) => setJump(e.target.value)}
+              placeholder="Jump to section…"
+              className="w-full rounded-full border border-border bg-bg/80 px-3 py-2.5 text-sm text-fg outline-none"
+            />
+            {jumpResults.length > 0 && (
+              <ul className="absolute left-0 right-0 top-full z-20 mt-1 rounded-xl border border-border bg-panel shadow-xl">
+                {jumpResults.map((item) => (
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="w-full px-3 py-2.5 text-left text-sm hover:bg-white/5"
+                      onClick={() => {
+                        go(item.id);
+                        setJump("");
+                      }}
+                    >
+                      {item.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+
+          {showMap && (
+            <div className="crt-panel flex flex-wrap items-center gap-2 px-3 py-2">
+              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                Map layers
+              </span>
+              <button
+                type="button"
+                className={`soft-btn ${showConflicts ? "active" : ""}`}
+                onClick={() => setShowConflicts((v) => !v)}
+              >
+                Conflicts
+              </button>
+              <button
+                type="button"
+                className={`soft-btn ${showSubs ? "active" : ""}`}
+                onClick={() => setShowSubs((v) => !v)}
+              >
+                SSBN
+              </button>
+              <button
+                type="button"
+                className={`soft-btn ${showAis ? "active" : ""}`}
+                onClick={() => setShowAis((v) => !v)}
+              >
+                AIS
+              </button>
+              {section !== "map" && (
+                <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
+                  Map home
+                </button>
+              )}
+            </div>
+          )}
+
+          <div
+            className={`grid gap-3 ${
+              showMap ? "lg:grid-cols-12" : "grid-cols-1"
+            }`}
+          >
+            {showMap && (
+              <div className="min-w-0 lg:col-span-5">
+                <div className="aspect-[2/1] w-full min-h-[200px] lg:min-h-[min(52vh,480px)]">
+                  <WorldMap
+                    nations={nations}
+                    selectedId={selectedId}
+                    onSelect={(id) => {
+                      setSelectedId(id);
+                      go("forces");
+                    }}
+                    scenario={scenario}
+                    animating={animating}
+                    showSites
+                    showSubs={showSubs}
+                    showAis={showAis}
+                    showConflicts={showConflicts}
+                    subs={subs}
+                    homePorts={HOME_PORTS}
+                    ais={ais}
+                    selectedSubId={selectedSubId}
+                    onSelectSub={(id) => {
+                      setSelectedSubId(id);
+                      if (id) go("maritime");
+                    }}
+                    seismic={seismic}
+                    searchedPlace={searchedPlace}
+                    selectedConflictId={selectedConflictId}
+                    onSelectConflict={(id) => {
+                      setSelectedConflictId(id);
+                      go("conflicts");
+                    }}
+                    conflicts={ARMED_CONFLICTS}
+                  />
+                </div>
+              </div>
+            )}
+            <div
+              className={`min-h-[420px] min-w-0 ${showMap ? "lg:col-span-7" : "w-full"}`}
+            >
+              {sidePanel}
+            </div>
+          </div>
+
+          <footer className="rounded-xl border border-border bg-panel/60 px-4 py-3 text-[11px] leading-relaxed text-muted">
+            <span className="font-semibold text-bright">ONTAS · final educational build</span>
+            {" — "}
+            Public sensors, open estimates, historical terrorism record, yields/aircraft desks.
+            Not official DEFCON, not a warning system. Emergencies: IPAWS/EAS/WEA.{" "}
             <Link to="/article" className="text-sky-300 underline">
-              Full essay
+              Essay
             </Link>
             {" · "}
             <a
@@ -606,9 +708,9 @@ export function WoprApp() {
             >
               GitHub
             </a>
-          </p>
-        </footer>
-      </main>
+          </footer>
+        </main>
+      </div>
     </div>
   );
 }
