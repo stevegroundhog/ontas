@@ -49,6 +49,7 @@ import { ThreatNewsFeed } from "./ThreatNewsFeed";
 import { TreatiesPanel } from "./TreatiesPanel";
 import { WarheadsPanel } from "./WarheadsPanel";
 import { WorldMap } from "./WorldMap";
+import { fetchSpaceWeather, type SpaceWeatherSnapshot } from "@/server/space-weather";
 
 const LEARN_KEY = "ontas-saw-learn";
 const NAV_KEY = "ontas-section";
@@ -96,6 +97,8 @@ export function WoprApp() {
   const [showSubs, setShowSubs] = useState(true);
   const [showAis, setShowAis] = useState(true);
   const [showConflicts, setShowConflicts] = useState(true);
+  const [showSeismic, setShowSeismic] = useState(true);
+  const [spaceWx, setSpaceWx] = useState<SpaceWeatherSnapshot | null>(null);
   const [linkLive, setLinkLive] = useState(false);
 
   const [searchedPlace, setSearchedPlace] = useState<PlaceHit | null>(null);
@@ -193,6 +196,24 @@ export function WoprApp() {
     let cancelled = false;
     const pull = async () => {
       try {
+        const d = await fetchSpaceWeather();
+        if (!cancelled) setSpaceWx(d);
+      } catch {
+        /* keep */
+      }
+    };
+    void pull();
+    const id = window.setInterval(pull, 180_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    const pull = async () => {
+      try {
         const data = await fetchMaritimeSnapshot();
         if (cancelled) return;
         setSubs(data.subs);
@@ -251,6 +272,14 @@ export function WoprApp() {
         i.group.toLowerCase().includes(q),
     ).slice(0, 8);
   }, [jump]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setJump("");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
 
   const onBootDone = useCallback(() => setBooted(true), []);
 
@@ -393,7 +422,6 @@ export function WoprApp() {
               }
               setNewsFilterId(id);
               setSelectedId(id);
-              go("forces");
             }}
             externalItems={news}
             externalFetchedAt={newsMeta.fetchedAt}
@@ -420,11 +448,46 @@ export function WoprApp() {
           <div className="crt-panel flex h-full flex-col gap-3 overflow-y-auto p-4">
             <DefconBadge state={defcon} onExplain={() => go("learn")} />
             <LiveStatusBar now={now} />
+            {spaceWx && (
+              <div className="rounded-xl border border-border bg-bg/40 px-3 py-2 text-[11px]">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="font-semibold text-violet-300">Space weather</span>
+                  <span className="chip">
+                    Kp {spaceWx.kp ?? "—"} · {spaceWx.scale}
+                  </span>
+                  <span className="text-dim">{spaceWx.ok ? "NOAA SWPC live" : "limited"}</span>
+                </div>
+                <p className="mt-1 text-muted">{spaceWx.note}</p>
+              </div>
+            )}
+            {news.length > 0 && (
+              <div className="rounded-xl border border-border bg-bg/40 px-3 py-2">
+                <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-400">
+                  Live headline tick · open mesh
+                </div>
+                <ul className="mt-1.5 max-h-28 space-y-1 overflow-y-auto">
+                  {news.slice(0, 6).map((n) => (
+                    <li key={n.id} className="text-[11px] leading-snug">
+                      <a
+                        href={n.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-fg/90 hover:text-sky-300 hover:underline"
+                      >
+                        <span className="text-dim">[{n.severity}] </span>
+                        {n.title}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <QuickFind section={section} onGo={go} />
             <div className="text-[11px] text-dim">
               {selectedConflictName
                 ? `Map focus: ${selectedConflictName}`
                 : "Click a conflict or country on the map."}
+              {ais.length ? ` · Baltic AIS contacts: ${ais.length}` : ""}
             </div>
           </div>
         );
@@ -605,7 +668,14 @@ export function WoprApp() {
                 className={`soft-btn ${showAis ? "active" : ""}`}
                 onClick={() => setShowAis((v) => !v)}
               >
-                AIS
+                AIS Baltic
+              </button>
+              <button
+                type="button"
+                className={`soft-btn ${showSeismic ? "active" : ""}`}
+                onClick={() => setShowSeismic((v) => !v)}
+              >
+                Seismic
               </button>
               {section !== "map" && (
                 <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
@@ -636,6 +706,7 @@ export function WoprApp() {
                     showSubs={showSubs}
                     showAis={showAis}
                     showConflicts={showConflicts}
+                    showSeismic={showSeismic}
                     subs={subs}
                     homePorts={HOME_PORTS}
                     ais={ais}

@@ -102,7 +102,8 @@ async function fetchFinnishAis(): Promise<AisContact[]> {
       const mil = isMilitaryLikely(meta.shipType, meta.name);
       const category = classifyAis(meta.shipType, meta.name);
       if (!mil && category === "merchant" && out.filter((x) => !x.militaryLikely).length > 60) {
-        if (Math.random() > 0.06) continue;
+        // Deterministic ~6% sample by MMSI (stable snapshots)
+        if ((Number(f.mmsi) % 100) > 5) continue;
       }
       out.push({
         mmsi: f.mmsi,

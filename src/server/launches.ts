@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { LAUNCH_CALENDAR, type LaunchEvent } from "@/data/launches";
+import { ONTAS_UA, parseRssItems } from "@/lib/rss-utils";
 
 export type LaunchNewsItem = {
   id: string;
@@ -17,60 +18,23 @@ export type LaunchDeskSnapshot = {
   feedOk: boolean;
 };
 
-const UA =
-  "Mozilla/5.0 (compatible; ONTAS/1.0; +https://github.com/stevegroundhog/ontas; educational)";
-
-function decodeXml(s: string): string {
-  return s
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/'/g, "'");
-}
-
-function stripTags(s: string): string {
-  return decodeXml(s).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-}
-
-function parseRssSafe(xml: string, source: string, limit: number): LaunchNewsItem[] {
-  const items: LaunchNewsItem[] = [];
-  const parts = xml.split(/<item[\s>]/i).slice(1);
-  for (const part of parts) {
-    if (items.length >= limit) break;
-    const title = stripTags((part.match(/<title[^>]*>([\s\S]*?)<\/title>/i) ?? [])[1] ?? "");
-    const link = stripTags(
-      (part.match(/<link[^>]*>([\s\S]*?)<\/link>/i) ?? [])[1] ??
-        (part.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i) ?? [])[1] ??
-        "",
-    );
-    const pub =
-      stripTags((part.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i) ?? [])[1] ?? "") || null;
-    if (!title) continue;
-    items.push({
-      id: `${source}-${items.length}-${title.slice(0, 40)}`,
-      title,
-      link: link.startsWith("http")
-        ? link
-        : `https://news.google.com/search?q=${encodeURIComponent(title)}`,
-      source,
-      publishedAt: pub,
-    });
-  }
-  return items;
-}
+let cache: { at: number; snap: LaunchDeskSnapshot } | null = null;
+const TTL = 120_000;
 
 async function fetchFeed(url: string, source: string): Promise<LaunchNewsItem[]> {
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+      headers: { "User-Agent": ONTAS_UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
       signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) return [];
-    const xml = await res.text();
-    return parseRssSafe(xml, source, 12);
+    return parseRssItems(await res.text(), 12).map((it, i) => ({
+      id: `${source}-${i}-${it.title.slice(0, 40)}`,
+      title: it.title,
+      link: it.link || `https://news.google.com/search?q=${encodeURIComponent(it.title)}`,
+      source,
+      publishedAt: it.publishedAt,
+    }));
   } catch {
     return [];
   }
@@ -78,19 +42,22 @@ async function fetchFeed(url: string, source: string): Promise<LaunchNewsItem[]>
 
 export const fetchLaunchDesk = createServerFn({ method: "GET" }).handler(
   async (): Promise<LaunchDeskSnapshot> => {
+    const now = Date.now();
+    if (cache && now - cache.at < TTL) return cache.snap;
+
     const queries = [
       "missile test launch",
       "ICBM test",
       "North Korea missile",
       "space launch schedule",
     ];
-    const urls = queries.map(
-      (q) =>
-        `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`,
-    );
-
     const results = await Promise.all(
-      urls.map((u, i) => fetchFeed(u, `GNews:${queries[i]!.slice(0, 18)}`)),
+      queries.map((q) =>
+        fetchFeed(
+          `https://news.google.com/rss/search?q=${encodeURIComponent(q)}&hl=en-US&gl=US&ceid=US:en`,
+          `GNews:${q.slice(0, 18)}`,
+        ),
+      ),
     );
     const seen = new Set<string>();
     const news: LaunchNewsItem[] = [];
@@ -105,7 +72,7 @@ export const fetchLaunchDesk = createServerFn({ method: "GET" }).handler(
       if (news.length >= 24) break;
     }
 
-    return {
+    const snap: LaunchDeskSnapshot = {
       calendar: LAUNCH_CALENDAR,
       news,
       fetchedAt: new Date().toISOString(),
@@ -113,5 +80,7 @@ export const fetchLaunchDesk = createServerFn({ method: "GET" }).handler(
       disclaimer:
         "Launch calendar mixes curated public events with open news RSS. Not Space-Track classified data, not official range control, not a prediction service. NOTAMs and national range notices are the authoritative flight-safety sources.",
     };
+    cache = { at: now, snap };
+    return snap;
   },
 );

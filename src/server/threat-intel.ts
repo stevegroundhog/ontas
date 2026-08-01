@@ -2,6 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { matchWatchZones, type WatchZone } from "@/data/watch-zones";
 import { getLiveNuclearNewsData, type LiveNewsItem } from "@/server/nuclear-news";
 import { getOsintDefcon } from "@/server/defcon-osint";
+import { parseRssItems } from "@/lib/rss-utils";
+import { getSpaceWeather } from "@/server/space-weather";
 
 export type SeismicEvent = {
   id: string;
@@ -46,41 +48,18 @@ export type ThreatIntelSnapshot = {
   cached?: boolean;
 };
 
-function stripTags(s: string): string {
-  return s
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/'/g, "'")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
-    .replace(/&/g, "&")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 function parseRss(xml: string, source: OfficialItem["source"], max = 12): OfficialItem[] {
   const items: OfficialItem[] = [];
-  const blocks = xml.split(/<item[\s>]/i).slice(1);
-  for (const block of blocks) {
-    const chunk = block.split(/<\/item>/i)[0] ?? "";
-    const title = stripTags(chunk.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] ?? "");
-    if (!title) continue;
-    if (/^UN News/i.test(title) && source === "UN") continue;
-    const link = stripTags(chunk.match(/<link[^>]*>([\s\S]*?)<\/link>/i)?.[1] ?? "");
-    const dateRaw = stripTags(chunk.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i)?.[1] ?? "");
-    const desc = stripTags(chunk.match(/<description[^>]*>([\s\S]*?)<\/description>/i)?.[1] ?? "");
-    const pub = dateRaw ? new Date(dateRaw) : new Date();
+  for (const it of parseRssItems(xml, max + 4)) {
+    if (/^UN News/i.test(it.title) && source === "UN") continue;
+    const pub = it.publishedAt ? new Date(it.publishedAt) : new Date();
     items.push({
-      id: `${source}-${title.slice(0, 40)}-${pub.getTime()}`.replace(/\s+/g, "_"),
-      title,
-      link,
-      publishedAt: Number.isNaN(pub.getTime()) ? new Date().toISOString() : pub.toISOString(),
+      id: `${source}-${it.title.slice(0, 40)}-${pub.getTime()}`.replace(/\s+/g, "_"),
+      title: it.title,
+      link: it.link,
+      publishedAt: it.publishedAt ?? new Date().toISOString(),
       source,
-      summary: desc.slice(0, 280) || title,
+      summary: it.summary || it.title,
     });
     if (items.length >= max) break;
   }
@@ -239,7 +218,7 @@ export const fetchThreatIntel = createServerFn({ method: "GET" }).handler(async 
     return { ...cache.snap, cached: true as const };
   }
 
-  const [newsPack, usgs, dod, iaea, un, osint] = await Promise.all([
+  const [newsPack, usgs, dod, iaea, un, bbc, osint, spaceWx] = await Promise.all([
     getLiveNuclearNewsData().catch(() => null),
     fetchUsgsSeismic(),
     fetchOfficialRss(
@@ -260,7 +239,14 @@ export const fetchThreatIntel = createServerFn({ method: "GET" }).handler(async 
       "UN Peace & Security RSS",
       "United Nations News public RSS",
     ),
+    fetchOfficialRss(
+      "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "Other",
+      "BBC World RSS",
+      "BBC public RSS — open news wire",
+    ),
     getOsintDefcon().catch(() => null),
+    getSpaceWeather().catch(() => null),
   ]);
 
   const news = newsPack?.items ?? [];
@@ -286,9 +272,23 @@ export const fetchThreatIntel = createServerFn({ method: "GET" }).handler(async 
     {
       id: "ais-fi",
       name: "Open AIS (digitraffic.fi Baltic)",
-      status: "ok",
-      detail: "Surface contacts via maritime module (gzip open AIS)",
+      status: "degraded",
+      detail: "Regional Baltic open AIS — live count set by maritime poller in UI",
       legal: "Open data — Finnish Transport Infrastructure Agency",
+    },
+    {
+      id: "bbc",
+      name: "BBC World RSS",
+      status: bbc.status.status,
+      detail: bbc.status.detail,
+      legal: bbc.status.legal,
+    },
+    {
+      id: "swpc",
+      name: "NOAA SWPC planetary K-index",
+      status: spaceWx?.ok ? "ok" : "degraded",
+      detail: spaceWx?.note ?? "unavailable",
+      legal: "NOAA Space Weather Prediction Center public JSON",
     },
     {
       id: "defcon-official",
@@ -312,7 +312,7 @@ export const fetchThreatIntel = createServerFn({ method: "GET" }).handler(async 
     newsFeedCount: newsPack?.feedCount ?? 0,
     seismic: usgs.events,
     seismicWatchCount: usgs.events.filter((e) => e.nuclearRelevance !== "background").length,
-    official: [...un.items, ...dod.items, ...iaea.items].sort(
+    official: [...un.items, ...dod.items, ...iaea.items, ...bbc.items].sort(
       (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(),
     ),
     sources,

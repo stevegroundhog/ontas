@@ -16,7 +16,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "build:node": "NITRO_PRESET=node-server vite build && npm run db:migrate",
-    "start": "node .output/server/index.mjs"
+    "start": "node .output/server/index.mjs",
+    "smoke": "node scripts/browser-smoke.mjs http://127.0.0.1:8080/"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.3",

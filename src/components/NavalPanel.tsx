@@ -6,7 +6,7 @@ import { formatRelative } from "@/data/threat-news";
 
 interface NavalPanelProps {
   units: MaritimeUnit[];
-  subs: SubPosition[];
+  subs?: SubPosition[];
   ais: AisContact[];
   aisSource: string;
   fetchedAt: string | null;

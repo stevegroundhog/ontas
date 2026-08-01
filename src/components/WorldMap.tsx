@@ -38,6 +38,7 @@ interface WorldMapProps {
   showSubs?: boolean;
   showAis?: boolean;
   showConflicts?: boolean;
+  showSeismic?: boolean;
   subs?: SubPosition[];
   homePorts?: HomePort[];
   ais?: AisContact[];
@@ -86,6 +87,7 @@ export function WorldMap({
   showSubs = true,
   showAis = true,
   showConflicts = true,
+  showSeismic = true,
   subs = [],
   homePorts = [],
   ais = [],
@@ -355,7 +357,8 @@ export function WorldMap({
           )}
         </g>
 
-        {seismic.slice(0, 45).map((e) => {
+        {showSeismic &&
+          seismic.slice(0, 45).map((e) => {
           const p = project(e.lat, e.lon);
           const relevant = e.nuclearRelevance !== "background";
           if (!relevant && e.mag < 5) return null;
@@ -615,20 +618,24 @@ export function WorldMap({
               ? ` · ${conflicts.find((c) => c.id === selectedConflictId)?.shortName ?? ""}`
               : ""}
             {searchedPlace ? ` · PIN ${searchedPlace.name}` : ""}
-            {watchSeismic.length ? ` · ${watchSeismic.length} seismic watch` : ""}
+            {showSeismic && watchSeismic.length ? ` · ${watchSeismic.length} seismic watch` : ""}
+            {showAis && ais.length ? ` · ${ais.length} Baltic AIS` : ""}
           </text>
         </g>
       </svg>
 
       <div className="pointer-events-none absolute bottom-2 left-2 right-2 flex flex-wrap gap-1.5">
-        {[
-          ["Nuclear state", "#3b82f6"],
-          ["NATO host", "#2dd4bf"],
-          ["Conflict", "#f43f5e"],
-          ["Place pin", "#38bdf8"],
-          ["SSBN est.", "#a78bfa"],
-          ["AIS", "#fbbf24"],
-        ].map(([label, color]) => (
+        {(
+          [
+            ["Nuclear state", "#3b82f6"],
+            ["NATO host", "#2dd4bf"],
+            ...(showConflicts ? [["Conflict", "#f43f5e"] as const] : []),
+            ["Place pin", "#38bdf8"],
+            ...(showSubs ? [["SSBN est.", "#a78bfa"] as const] : []),
+            ...(showAis ? [["AIS Baltic", "#fbbf24"] as const] : []),
+            ...(showSeismic ? [["Seismic", "#f87171"] as const] : []),
+          ] as [string, string][]
+        ).map(([label, color]) => (
           <span
             key={label}
             className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/95 backdrop-blur-sm"

@@ -159,9 +159,15 @@ function extractSourceFromTitle(title: string): { title: string; source: string 
 
 function scoreSeverity(title: string, summary: string): LiveNewsItem["severity"] {
   const t = `${title} ${summary}`;
-  if (/launch|test[- ]fire|explosion|strike|attack|war\b|defcon|alert/i.test(t)) return "high";
-  if (/treaty|new start|arms control|expire|suspen/i.test(t)) return "critical";
-  if (/moderniz|deploy|arsenal|icbm|slbm|warhead|sarmat|minuteman/i.test(t)) return "elevated";
+  // Imminent-use / combat language first
+  if (/nuclear\s*attack|missile\s*launch|test[- ]fire|detonat|strike|explosion|defcon\s*[1-3]|cocked\s*pistol|incoming/i.test(t))
+    return "critical";
+  if (/launch|ballistic|icbm|slbm|alert|evacuation|war\b|attack|hypersonic\s*test/i.test(t))
+    return "high";
+  if (/treaty|new start|arms control|expire|suspen|npt|ctbt|proliferation/i.test(t))
+    return "elevated";
+  if (/moderniz|deploy|arsenal|warhead|sarmat|minuteman|patrol|exercise/i.test(t))
+    return "elevated";
   return "info";
 }
 

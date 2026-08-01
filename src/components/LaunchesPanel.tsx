@@ -7,7 +7,7 @@ import {
 import { fetchLaunchDesk, type LaunchNewsItem } from "@/server/launches";
 
 export function LaunchesPanel() {
-  const [calendar] = useState<LaunchEvent[]>(() => launchesSortedNewestFirst());
+  const [calendar, setCalendar] = useState<LaunchEvent[]>(() => launchesSortedNewestFirst());
   const [news, setNews] = useState<LaunchNewsItem[]>([]);
   const [disclaimer, setDisclaimer] = useState("");
   const [fetchedAt, setFetchedAt] = useState<string | null>(null);
@@ -22,6 +22,7 @@ export function LaunchesPanel() {
         const data = await fetchLaunchDesk();
         if (cancelled) return;
         setNews(data.news);
+        if (data.calendar?.length) setCalendar(data.calendar);
         setDisclaimer(data.disclaimer);
         setFetchedAt(data.fetchedAt);
         setFeedOk(data.feedOk);

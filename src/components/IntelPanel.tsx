@@ -33,7 +33,7 @@ export function IntelPanel({
           Live intel fusion
         </div>
         <div className="text-sm font-bold text-bright">
-          USGS · UN · DoD · IAEA · news mesh · OSINT DEFCON
+          USGS · UN · DoD · IAEA · BBC · NOAA Kp · news mesh · OSINT DEFCON
         </div>
         <div className="mt-1 flex flex-wrap gap-2 text-[11px] text-muted">
           <span className="chip" style={{ borderColor: "#34d399", color: "#6ee7b7" }}>
@@ -113,6 +113,9 @@ export function IntelPanel({
                     <span className="tabular">{formatRelative(item.publishedAt, now)}</span>
                   </div>
                   <div className="mt-0.5 font-medium text-bright">{item.title}</div>
+                  {item.summary && item.summary !== item.title && (
+                    <p className="mt-0.5 text-[11px] leading-snug text-muted line-clamp-2">{item.summary}</p>
+                  )}
                   {item.link && (
                     <a
                       href={item.link}

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   NUCLEAR_AIRCRAFT,
   WARHEAD_YIELDS,
@@ -24,6 +24,10 @@ export function ArsenalPanel({
 }) {
   const [mode, setMode] = useState<Mode>("yields");
   const [filter, setFilter] = useState<string>(nationId ?? "all");
+
+  useEffect(() => {
+    if (nationId) setFilter(nationId);
+  }, [nationId]);
 
   const yieldRows = useMemo(() => {
     const list = filter === "all" ? WARHEAD_YIELDS : yieldsForNation(filter);

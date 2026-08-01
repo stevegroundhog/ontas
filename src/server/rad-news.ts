@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { ONTAS_UA, parseRssItems } from "@/lib/rss-utils";
 
 export type RadNewsItem = {
   id: string;
@@ -15,58 +16,23 @@ export type RadNewsSnapshot = {
   disclaimer: string;
 };
 
-const UA =
-  "Mozilla/5.0 (compatible; ONTAS/1.0; +https://github.com/stevegroundhog/ontas; educational)";
-
-function decodeXml(s: string): string {
-  return s
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1")
-    .replace(/&/g, "&")
-    .replace(/</g, "<")
-    .replace(/>/g, ">")
-    .replace(/"/g, '"')
-    .replace(/&#39;/g, "'");
-}
-
-function stripTags(s: string): string {
-  return decodeXml(s).replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
-}
-
-function parseRss(xml: string, source: string, limit: number): RadNewsItem[] {
-  const items: RadNewsItem[] = [];
-  const parts = xml.split(/<item[\s>]/i).slice(1);
-  for (const part of parts) {
-    if (items.length >= limit) break;
-    const title = stripTags((part.match(/<title[^>]*>([\s\S]*?)<\/title>/i) ?? [])[1] ?? "");
-    const link = stripTags(
-      (part.match(/<link[^>]*>([\s\S]*?)<\/link>/i) ?? [])[1] ??
-        (part.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i) ?? [])[1] ??
-        "",
-    );
-    const pub =
-      stripTags((part.match(/<pubDate[^>]*>([\s\S]*?)<\/pubDate>/i) ?? [])[1] ?? "") || null;
-    if (!title) continue;
-    items.push({
-      id: `${source}-${items.length}-${title.slice(0, 48)}`,
-      title,
-      link: link.startsWith("http")
-        ? link
-        : `https://news.google.com/search?q=${encodeURIComponent(title)}`,
-      source,
-      publishedAt: pub,
-    });
-  }
-  return items;
-}
+let cache: { at: number; snap: RadNewsSnapshot } | null = null;
+const TTL = 120_000;
 
 async function fetchFeed(url: string, source: string): Promise<RadNewsItem[]> {
   try {
     const res = await fetch(url, {
-      headers: { "User-Agent": UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
+      headers: { "User-Agent": ONTAS_UA, Accept: "application/rss+xml, application/xml, text/xml, */*" },
       signal: AbortSignal.timeout(12000),
     });
     if (!res.ok) return [];
-    return parseRss(await res.text(), source, 10);
+    return parseRssItems(await res.text(), 10).map((it, i) => ({
+      id: `${source}-${i}-${it.title.slice(0, 48)}`,
+      title: it.title,
+      link: it.link || `https://news.google.com/search?q=${encodeURIComponent(it.title)}`,
+      source,
+      publishedAt: it.publishedAt,
+    }));
   } catch {
     return [];
   }
@@ -74,6 +40,9 @@ async function fetchFeed(url: string, source: string): Promise<RadNewsItem[]> {
 
 export const fetchRadNews = createServerFn({ method: "GET" }).handler(
   async (): Promise<RadNewsSnapshot> => {
+    const now = Date.now();
+    if (cache && now - cache.at < TTL) return cache.snap;
+
     const queries = [
       "nuclear security IAEA",
       "radiological incident OR dirty bomb",
@@ -100,12 +69,14 @@ export const fetchRadNews = createServerFn({ method: "GET" }).handler(
       }
       if (items.length >= 20) break;
     }
-    return {
+    const snap: RadNewsSnapshot = {
       items,
       fetchedAt: new Date().toISOString(),
       feedOk: items.length > 0,
       disclaimer:
         "Open news mesh for nuclear security / radiological topics only. Headlines are not confirmed intelligence. Not a terrorism tip line.",
     };
+    cache = { at: now, snap };
+    return snap;
   },
 );
