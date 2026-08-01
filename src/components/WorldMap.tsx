@@ -180,12 +180,12 @@ export function WorldMap({
     return geoForNation(selectedId)?.sites ?? [];
   }, [selectedId, showSites]);
 
-  const nuclearCount = countries.filter((c) => c.nuclearId).length;
   const watchSeismic = seismic.filter((e) => e.nuclearRelevance !== "background");
   const searchPin = searchedPlace ? project(searchedPlace.lat, searchedPlace.lon) : null;
+  const nuclearCount = countries.filter((c) => c.nuclearId).length;
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-xl border border-border bg-[#0a1628]">
+    <div className="relative h-full w-full overflow-hidden rounded-xl border border-border bg-[#070f1c] shadow-[inset_0_0_80px_rgba(14,165,233,0.06)]">
       <svg
         viewBox={`0 0 ${MAP_W} ${MAP_H}`}
         className="h-full w-full"
@@ -194,14 +194,26 @@ export function WorldMap({
       >
         <defs>
           <linearGradient id="ocean" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0c1a32" />
-            <stop offset="100%" stopColor="#07101f" />
+            <stop offset="0%" stopColor="#0a1528" />
+            <stop offset="55%" stopColor="#07101c" />
+            <stop offset="100%" stopColor="#050b14" />
           </linearGradient>
-          <pattern id="grid" width="50" height="25" patternUnits="userSpaceOnUse">
-            <path d="M 50 0 L 0 0 0 25" fill="none" stroke="#1e3a5f" strokeWidth="0.35" />
+          <radialGradient id="oceanVignette" cx="50%" cy="45%" r="65%">
+            <stop offset="0%" stopColor="#0b1a30" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="#020617" stopOpacity="0.9" />
+          </radialGradient>
+          <pattern id="grid" width="40" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 40 0 L 0 0 0 20" fill="none" stroke="#13233a" strokeWidth="0.3" />
           </pattern>
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="1.8" result="b" />
+          <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="1.6" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="2.4" result="b" />
             <feMerge>
               <feMergeNode in="b" />
               <feMergeNode in="SourceGraphic" />
@@ -210,7 +222,8 @@ export function WorldMap({
         </defs>
 
         <rect width={MAP_W} height={MAP_H} fill="url(#ocean)" />
-        <rect width={MAP_W} height={MAP_H} fill="url(#grid)" pointerEvents="none" />
+        <rect width={MAP_W} height={MAP_H} fill="url(#oceanVignette)" pointerEvents="none" />
+        <rect width={MAP_W} height={MAP_H} fill="url(#grid)" pointerEvents="none" opacity="0.85" />
 
         <g>
           {countries.map((c) => {
@@ -220,26 +233,29 @@ export function WorldMap({
               (selectedIso && c.iso === selectedIso);
             const isHover = hover?.iso === c.iso;
 
-            let fill = "#1a2740";
-            let stroke = "#2d4063";
-            let sw = 0.4;
+            let fill = "#121c2e";
+            let stroke = "#243656";
+            let sw = 0.35;
+            let opacity = 1;
 
             if (c.isHost && !isNuclear) {
-              fill = "#1e3a4a";
-              stroke = "#2dd4bf";
+              fill = "#0f2a32";
+              stroke = "#2dd4bf88";
+              sw = 0.55;
             }
             if (isNuclear && c.nuclearId) {
-              fill = (NUCLEAR_FILL[c.nuclearId] ?? "#334155") + "cc";
-              stroke = "#e2e8f0";
-              sw = 0.7;
+              fill = (NUCLEAR_FILL[c.nuclearId] ?? "#334155") + "b8";
+              stroke = "#e2e8f0cc";
+              sw = 0.75;
             }
             if (isSelected) {
-              fill = "#38bdf8aa";
+              fill = "#0ea5e9aa";
               stroke = "#7dd3fc";
-              sw = 1.4;
+              sw = 1.5;
             } else if (isHover) {
               stroke = "#f8fafc";
-              sw = 1;
+              sw = 0.95;
+              opacity = 0.95;
             }
 
             return (
@@ -249,7 +265,9 @@ export function WorldMap({
                 fill={fill}
                 stroke={stroke}
                 strokeWidth={sw}
-                className="cursor-pointer"
+                strokeLinejoin="round"
+                opacity={opacity}
+                className="cursor-pointer transition-[fill,stroke-width] duration-150"
                 onClick={() => {
                   if (c.nuclearId) onSelect(c.nuclearId);
                 }}
@@ -271,7 +289,7 @@ export function WorldMap({
           })}
         </g>
 
-        <g pointerEvents="none" opacity="0.55">
+        <g pointerEvents="none" opacity="0.5">
           {WATCH_ZONES.filter((z) => z.kind === "test-site" || z.kind === "flashpoint").map(
             (z) => {
               const p = project(z.lat, z.lon);
@@ -285,8 +303,8 @@ export function WorldMap({
                   r={Math.max(4, r)}
                   fill="none"
                   stroke={z.kind === "test-site" ? "#fbbf24" : "#f472b6"}
-                  strokeWidth="0.7"
-                  strokeDasharray="3 2"
+                  strokeWidth="0.65"
+                  strokeDasharray="2.5 2"
                 />
               );
             },
@@ -302,7 +320,7 @@ export function WorldMap({
               key={e.id}
               cx={p.x}
               cy={p.y}
-              r={1.3 + e.mag * 0.55}
+              r={1.2 + e.mag * 0.5}
               fill={
                 e.nuclearRelevance === "elevated"
                   ? "#f87171"
@@ -310,7 +328,7 @@ export function WorldMap({
                     ? "#fbbf24"
                     : "#64748b"
               }
-              opacity={relevant ? 0.95 : 0.4}
+              opacity={relevant ? 0.9 : 0.35}
               pointerEvents="none"
             />
           );
@@ -324,9 +342,9 @@ export function WorldMap({
                 key={`ais-${a.mmsi}`}
                 cx={p.x}
                 cy={p.y}
-                r={a.militaryLikely ? 2.4 : 1.15}
-                fill={a.militaryLikely ? "#fbbf24" : "#475569"}
-                opacity={a.militaryLikely ? 0.95 : 0.45}
+                r={a.militaryLikely ? 2.2 : 1.05}
+                fill={a.militaryLikely ? "#fbbf24" : "#334155"}
+                opacity={a.militaryLikely ? 0.92 : 0.4}
                 pointerEvents="none"
               />
             );
@@ -338,10 +356,10 @@ export function WorldMap({
             return (
               <rect
                 key={hp.id}
-                x={p.x - 3.5}
-                y={p.y - 3.5}
-                width={7}
-                height={7}
+                x={p.x - 3.2}
+                y={p.y - 3.2}
+                width={6.4}
+                height={6.4}
                 fill="none"
                 stroke="#2dd4bf"
                 strokeWidth="1"
@@ -368,26 +386,31 @@ export function WorldMap({
               >
                 <circle r={11} fill="transparent" />
                 {selected && (
-                  <circle r={9} fill="none" stroke="#f8fafc" strokeWidth="1.2" className="crt-pulse" />
+                  <circle
+                    r={9}
+                    fill="none"
+                    stroke="#f8fafc"
+                    strokeWidth="1.1"
+                    className="crt-pulse"
+                  />
                 )}
                 <path
-                  d="M 0 -6 L 4 5 L 0 2.5 L -4 5 Z"
+                  d="M 0 -5.5 L 3.6 4.5 L 0 2.2 L -3.6 4.5 Z"
                   fill={color}
                   stroke="#f8fafc"
-                  strokeWidth="0.6"
+                  strokeWidth="0.55"
                   filter={s.status === "patrol" ? "url(#glow)" : undefined}
                 />
               </g>
             );
           })}
 
-        {/* Armed conflict markers */}
         {showConflicts &&
           conflicts.map((cf) => {
             const p = project(cf.lat, cf.lon);
             const meta = CONFLICT_INTENSITY_META[cf.intensity];
             const selected = selectedConflictId === cf.id;
-            const r = selected ? 7 : 4 + meta.rank * 0.4;
+            const r = selected ? 6.5 : 3.6 + meta.rank * 0.35;
             return (
               <g
                 key={cf.id}
@@ -398,21 +421,21 @@ export function WorldMap({
                   onSelectConflict?.(selected ? null : cf.id);
                 }}
               >
-                <circle r={r + 4} fill={`${meta.color}33`} />
+                <circle r={r + 5} fill={`${meta.color}22`} filter="url(#softGlow)" />
                 <circle
                   r={r}
                   fill={meta.color}
                   stroke={selected ? "#f8fafc" : "#0f172a"}
-                  strokeWidth={selected ? 1.4 : 0.7}
+                  strokeWidth={selected ? 1.35 : 0.65}
                   className={meta.rank >= 4 ? "crt-pulse" : undefined}
                 />
                 {selected && (
                   <text
-                    y={-r - 6}
+                    y={-r - 5}
                     textAnchor="middle"
                     fill="#fecdd3"
-                    fontSize="9"
-                    fontFamily="system-ui, sans-serif"
+                    fontSize="8.5"
+                    fontFamily="Inter, system-ui, sans-serif"
                     fontWeight="700"
                   >
                     {cf.shortName}
@@ -433,12 +456,13 @@ export function WorldMap({
                   d={arc.path}
                   fill="none"
                   stroke="#f472b6"
-                  strokeWidth="1.6"
-                  opacity={animating ? 0.5 + local * 0.5 : 0.15}
+                  strokeWidth="1.5"
+                  opacity={animating ? 0.45 + local * 0.5 : 0.12}
                   strokeDasharray={`${local * 900} 900`}
+                  strokeLinecap="round"
                 />
                 {animating && local > 0.02 && local < 1 && (
-                  <circle cx={tip.x} cy={tip.y} r="3.2" fill="#f9a8d4" />
+                  <circle cx={tip.x} cy={tip.y} r="3" fill="#f9a8d4" filter="url(#glow)" />
                 )}
               </g>
             );
@@ -456,10 +480,11 @@ export function WorldMap({
               onClick={() => onSelect(n.id)}
             >
               <circle
-                r={selected ? 4 : 2.5}
+                r={selected ? 4.2 : 2.4}
                 fill={NATION_COLORS[n.id] ?? "#94a3b8"}
                 stroke="#f8fafc"
-                strokeWidth="0.7"
+                strokeWidth="0.65"
+                filter={selected ? "url(#glow)" : undefined}
               />
             </g>
           );
@@ -472,10 +497,10 @@ export function WorldMap({
               key={s.name}
               cx={p.x}
               cy={p.y}
-              r={2.2}
+              r={2}
               fill="none"
               stroke="#a5f3fc"
-              strokeWidth="0.8"
+              strokeWidth="0.75"
               pointerEvents="none"
             />
           );
@@ -483,15 +508,21 @@ export function WorldMap({
 
         {searchPin && searchedPlace && (
           <g transform={`translate(${searchPin.x},${searchPin.y})`} pointerEvents="none">
-            <circle r={14} fill="#38bdf833" stroke="#38bdf8" strokeWidth="1.2" className="crt-pulse" />
-            <circle r={5} fill="#38bdf8" stroke="#f8fafc" strokeWidth="1.2" />
-            <path d="M 0 5 L 0 14" stroke="#38bdf8" strokeWidth="2" />
+            <circle
+              r={13}
+              fill="#38bdf822"
+              stroke="#38bdf8"
+              strokeWidth="1.1"
+              className="crt-pulse"
+            />
+            <circle r={4.5} fill="#38bdf8" stroke="#f8fafc" strokeWidth="1.1" />
+            <path d="M 0 4.5 L 0 12" stroke="#38bdf8" strokeWidth="1.8" strokeLinecap="round" />
             <text
-              y={-18}
+              y={-16}
               textAnchor="middle"
               fill="#e0f2fe"
-              fontSize="10"
-              fontFamily="system-ui, sans-serif"
+              fontSize="9"
+              fontFamily="Inter, system-ui, sans-serif"
               fontWeight="700"
             >
               {searchedPlace.name.length > 18
@@ -504,52 +535,60 @@ export function WorldMap({
         {hover && (
           <g pointerEvents="none">
             <rect
-              x={Math.min(hover.x + 8, MAP_W - 140)}
-              y={Math.max(hover.y - 22, 8)}
-              rx={6}
-              width={Math.min(132, hover.name.length * 6.5 + 28)}
+              x={Math.min(hover.x + 8, MAP_W - 148)}
+              y={Math.max(hover.y - 24, 6)}
+              rx={7}
+              width={Math.min(140, hover.name.length * 6.2 + 32)}
               height={18}
-              fill="#0f172a"
+              fill="#0f172af2"
               stroke="#38bdf8"
-              strokeWidth="1"
+              strokeWidth="0.9"
             />
             <text
-              x={Math.min(hover.x + 14, MAP_W - 132)}
-              y={Math.max(hover.y - 9, 20)}
+              x={Math.min(hover.x + 14, MAP_W - 140)}
+              y={Math.max(hover.y - 11, 18)}
               fill="#e0f2fe"
-              fontSize="9"
-              fontFamily="system-ui, sans-serif"
+              fontSize="8.5"
+              fontFamily="Inter, system-ui, sans-serif"
             >
-              {hover.iso} · {hover.name.length > 14 ? `${hover.name.slice(0, 13)}…` : hover.name}
+              {hover.iso} · {hover.name.length > 16 ? `${hover.name.slice(0, 15)}…` : hover.name}
             </text>
           </g>
         )}
 
         <g pointerEvents="none">
-          <rect x={10} y={8} width={460} height={22} rx={6} fill="#0f172acc" />
-          <text x={18} y={22} fill="#cbd5e1" fontSize="9" fontFamily="system-ui, sans-serif">
-            LIVE MAP · {countries.length || "…"} countries · {conflicts.length} conflicts
+          <rect x={8} y={6} width={520} height={20} rx={8} fill="#0f172ae6" />
+          <text
+            x={16}
+            y={19}
+            fill="#cbd5e1"
+            fontSize="8.5"
+            fontFamily="Inter, system-ui, sans-serif"
+          >
+            LIVE MAP · {countries.length || "…"} nations · {nuclearCount} nuclear ·{" "}
+            {conflicts.length} conflicts
             {selectedConflictId
               ? ` · ${conflicts.find((c) => c.id === selectedConflictId)?.shortName ?? ""}`
               : ""}
-            {searchedPlace ? ` · PIN: ${searchedPlace.name}` : ""}
+            {searchedPlace ? ` · PIN ${searchedPlace.name}` : ""}
             {watchSeismic.length ? ` · ${watchSeismic.length} seismic watch` : ""}
           </text>
         </g>
       </svg>
 
-      <div className="pointer-events-none absolute bottom-2 left-2 flex flex-wrap gap-1.5">
+      <div className="pointer-events-none absolute bottom-2 left-2 right-2 flex flex-wrap gap-1.5">
         {[
           ["Nuclear state", "#3b82f6"],
+          ["NATO host", "#2dd4bf"],
           ["Conflict", "#f43f5e"],
-          ["Your place", "#38bdf8"],
+          ["Place pin", "#38bdf8"],
           ["SSBN est.", "#a78bfa"],
           ["AIS", "#fbbf24"],
         ].map(([label, color]) => (
           <span
             key={label}
-            className="rounded-full px-2 py-0.5 text-[10px] font-semibold text-white/90"
-            style={{ background: `${color}cc` }}
+            className="rounded-full border border-white/10 px-2 py-0.5 text-[10px] font-semibold text-white/95 backdrop-blur-sm"
+            style={{ background: `${color}b3` }}
           >
             {label}
           </span>

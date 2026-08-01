@@ -29,10 +29,12 @@ import {
 import type { SubPosition } from "@/data/naval-deployments";
 import { BootScreen } from "./BootScreen";
 import { ClimatePanel } from "./ClimatePanel";
+import { ComparePanel } from "./ComparePanel";
 import { ConflictsPanel } from "./ConflictsPanel";
 import { DefconBadge } from "./DefconBadge";
 import { ForceTable } from "./ForceTable";
 import { IntelPanel } from "./IntelPanel";
+import { LaunchesPanel } from "./LaunchesPanel";
 import { LearnPanel } from "./LearnPanel";
 import { LiveStatusBar } from "./LiveStatusBar";
 import { NationPanel } from "./NationPanel";
@@ -40,16 +42,27 @@ import { NavalPanel } from "./NavalPanel";
 import { PlaceSearch } from "./PlaceSearch";
 import { ScenarioPanel } from "./ScenarioPanel";
 import { ThreatNewsFeed } from "./ThreatNewsFeed";
+import { TreatiesPanel } from "./TreatiesPanel";
 import { WorldMap } from "./WorldMap";
 
-type RightTab = "conflicts" | "search" | "nation" | "naval" | "intel" | "scenario";
-type BottomTab = "learn" | "news" | "forces" | "climate";
+type RightTab =
+  | "conflicts"
+  | "search"
+  | "compare"
+  | "nation"
+  | "naval"
+  | "intel"
+  | "launches"
+  | "scenario";
+type BottomTab = "learn" | "news" | "forces" | "treaties" | "climate";
 
 const LEARN_KEY = "ontas-saw-learn";
 
 export function WoprApp() {
   const [booted, setBooted] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>("us");
+  const [compareLeft, setCompareLeft] = useState("us");
+  const [compareRight, setCompareRight] = useState("ru");
   const [newsFilterId, setNewsFilterId] = useState<string | null>(null);
   const [scenarioId, setScenarioId] = useState(scenarios[0]!.id);
   const [animating, setAnimating] = useState(false);
@@ -257,8 +270,10 @@ export function WoprApp() {
   const tabs: { id: RightTab; label: string }[] = [
     { id: "conflicts", label: "Conflicts" },
     { id: "search", label: "Survivability" },
-    { id: "naval", label: "Ships & Subs" },
-    { id: "intel", label: "Live Intel" },
+    { id: "compare", label: "Compare" },
+    { id: "launches", label: "Launches" },
+    { id: "naval", label: "Ships" },
+    { id: "intel", label: "Intel" },
     { id: "nation", label: "Country" },
     { id: "scenario", label: "Scenarios" },
   ];
@@ -293,7 +308,10 @@ export function WoprApp() {
           What does DEFCON mean?
         </button>
         {" · "}
-        <Link to="/article" className="underline decoration-dotted underline-offset-2 hover:text-bright">
+        <Link
+          to="/article"
+          className="underline decoration-dotted underline-offset-2 hover:text-bright"
+        >
           Read the essay
         </Link>
       </div>
@@ -305,7 +323,7 @@ export function WoprApp() {
               ONTAS · Unclassified open-source fusion
             </div>
             <h1 className="truncate text-lg font-bold text-bright sm:text-xl">
-              Live public sensors · Conflicts · Nuclear awareness
+              Map · Conflicts · Compare · Launches · Treaties
             </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted">
@@ -382,7 +400,7 @@ export function WoprApp() {
 
         <div className="grid gap-3 lg:grid-cols-12">
           <div className="relative z-0 min-w-0 overflow-hidden lg:col-span-5">
-            <div className="aspect-[2/1] w-full min-h-[220px] lg:min-h-[400px]">
+            <div className="aspect-[2/1] w-full min-h-[220px] lg:min-h-[420px]">
               <WorldMap
                 nations={nations}
                 selectedId={selectedId}
@@ -415,7 +433,7 @@ export function WoprApp() {
               />
             </div>
           </div>
-          <div className="relative z-10 min-h-[380px] min-w-0 lg:col-span-7 lg:min-h-[400px]">
+          <div className="relative z-10 min-h-[380px] min-w-0 lg:col-span-7 lg:min-h-[420px]">
             {rightTab === "conflicts" && (
               <ConflictsPanel
                 selectedId={selectedConflictId}
@@ -433,6 +451,18 @@ export function WoprApp() {
                 }}
               />
             )}
+            {rightTab === "compare" && (
+              <ComparePanel
+                leftId={compareLeft}
+                rightId={compareRight}
+                onChangeLeft={(id) => {
+                  setCompareLeft(id);
+                  setSelectedId(id);
+                }}
+                onChangeRight={setCompareRight}
+              />
+            )}
+            {rightTab === "launches" && <LaunchesPanel />}
             {rightTab === "naval" && (
               <NavalPanel
                 units={units}
@@ -492,6 +522,13 @@ export function WoprApp() {
           </button>
           <button
             type="button"
+            className={`soft-btn ${bottomTab === "treaties" ? "active" : ""}`}
+            onClick={() => setBottomTab("treaties")}
+          >
+            Treaties
+          </button>
+          <button
+            type="button"
             className={`soft-btn ${bottomTab === "climate" ? "active" : ""}`}
             onClick={() => setBottomTab("climate")}
           >
@@ -533,15 +570,17 @@ export function WoprApp() {
               }}
             />
           )}
+          {bottomTab === "treaties" && <TreatiesPanel />}
           {bottomTab === "climate" && <ClimatePanel />}
         </div>
 
         <footer className="crt-panel px-4 py-3 text-xs leading-relaxed text-muted">
           <div className="font-semibold text-bright">Unclassified realtime scope</div>
           <p className="mt-1">
-            Live: USGS earthquakes, UN/DoD/IAEA RSS, multi-region news mesh, BBC/UN conflict wires,
-            Finnish open AIS, OSM geocoding, independent DEFCON OSINT. Not live: official DEFCON,
-            submerged SSBN tracks, classified C2. Educational only — emergencies use IPAWS/EAS/WEA.{" "}
+            Live: USGS, UN/DoD/IAEA RSS, news mesh, BBC/UN conflict wires, Finnish AIS, OSM geocode,
+            launch-news mesh, DEFCON OSINT. Curated: treaty timeline, launch calendar, fatality
+            ranges (contested open estimates). Not live: official DEFCON, submerged SSBNs,
+            classified C2. Educational only.{" "}
             <button type="button" className="text-sky-300 underline" onClick={openLearn}>
               Beginner guide
             </button>

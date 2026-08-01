@@ -23,10 +23,11 @@ export type SurvivalProfile = {
   summary: string;
   factors: string[];
   nearestTargets: { name: string; kind: string; distanceKm: number }[];
-  climate: "arctic" | "cold" | "temperate" | "hot" | "tropical";
+  climate: "arctic" | "cold" | "temperate" | "hot" | "tropical" | "arid";
   settlement: "city" | "town" | "village" | "rural" | "unknown";
   items: SurvivalItem[];
   actions: string[];
+  climateFocus: string[];
   disclaimer: string;
 };
 
@@ -39,10 +40,17 @@ function settlementType(place: PlaceHit): SurvivalProfile["settlement"] {
   return place.importance > 0.4 ? "town" : "unknown";
 }
 
-function climateBand(lat: number): SurvivalProfile["climate"] {
+/** Latitude + rough longitude heuristics for arid belts */
+function climateBand(lat: number, lon: number): SurvivalProfile["climate"] {
   const a = Math.abs(lat);
+  // Sahara / Arabia / Central Asia / SW US / Australia arid-ish bands (educational)
+  const aridBelt =
+    (a >= 15 && a <= 35 && ((lon > -20 && lon < 60) || (lon > 60 && lon < 110))) ||
+    (lat >= 25 && lat <= 40 && lon >= -120 && lon <= -100) ||
+    (lat >= -35 && lat <= -18 && lon >= 115 && lon <= 150);
   if (a >= 66) return "arctic";
   if (a >= 50) return "cold";
+  if (aridBelt && a >= 18 && a <= 38) return "arid";
   if (a <= 15) return "tropical";
   if (a <= 30) return "hot";
   return "temperate";
@@ -69,14 +77,193 @@ function collectTargets() {
 
 const ALL_TARGETS = collectTargets();
 
+function climateKit(climate: SurvivalProfile["climate"]): { items: SurvivalItem[]; focus: string[] } {
+  const items: SurvivalItem[] = [];
+  const focus: string[] = [];
+
+  if (climate === "arctic" || climate === "cold") {
+    focus.push(
+      "Cold kills faster than hunger — heat, dry layers, and CO-safe plans dominate.",
+      "Pipes freeze; store water where it will not ice solid.",
+      "Short daylight: prioritize light + radio batteries.",
+    );
+    items.push(
+      {
+        id: "warm-layers",
+        name: "Insulating layers + wool/synthetic base (not cotton)",
+        category: "climate",
+        priority: 1,
+        reason: "Wet cotton loses insulation; hypothermia risk without power",
+      },
+      {
+        id: "sleep-cold",
+        name: "Cold-rated sleeping bag / blanket system (0°F / −18°C or lower)",
+        category: "climate",
+        priority: 1,
+        reason: "Shelter without building heat is life-threatening in cold bands",
+      },
+      {
+        id: "heat-plan",
+        name: "Indoor-safe heat plan + CO detector (never charcoal/generator indoors)",
+        category: "climate",
+        priority: 1,
+        reason: "Blackout heating is a leading CO-poisoning cause",
+      },
+      {
+        id: "water-freeze",
+        name: "Water stored off exterior walls + melt plan (pot + fuel)",
+        category: "water",
+        priority: 1,
+        qtyHint: "Extra margin if freezing expected",
+        reason: "Stored water can freeze and rupture containers",
+      },
+      {
+        id: "boots-gloves",
+        name: "Insulated waterproof boots, gloves, hat, eye protection",
+        category: "climate",
+        priority: 2,
+        reason: "Frostbite risk during outdoor movement / debris work",
+      },
+    );
+  }
+
+  if (climate === "hot" || climate === "tropical" || climate === "arid") {
+    focus.push(
+      "Heat injury and dehydration dominate after power loss.",
+      "Water margin beats almost every other comfort item.",
+    );
+    items.push(
+      {
+        id: "water-heat",
+        name: "Extra sealed water (heat raises need 1.5–2×)",
+        category: "water",
+        priority: 1,
+        qtyHint: "6+ L / person / day in extreme heat × 7–14 days",
+        reason: "Cooling fails; sweat losses climb without A/C",
+      },
+      {
+        id: "electrolytes",
+        name: "Oral rehydration / electrolyte packets",
+        category: "climate",
+        priority: 1,
+        reason: "Heat exhaustion risk during shelter or evacuation",
+      },
+      {
+        id: "shade",
+        name: "Shade tarp, wide hat, cooling cloths",
+        category: "climate",
+        priority: 1,
+        reason: "Passive cooling when electricity is gone",
+      },
+      {
+        id: "sun-med",
+        name: "Sunscreen, lip balm, basic burn care",
+        category: "medical",
+        priority: 2,
+        reason: "Extended outdoor exposure during infrastructure failure",
+      },
+    );
+  }
+
+  if (climate === "tropical") {
+    focus.push("Humidity + storms: mold, insects, and flood water contamination.");
+    items.push(
+      {
+        id: "mosquito",
+        name: "Mosquito nets + repellent",
+        category: "climate",
+        priority: 1,
+        reason: "Vector disease risk rises when sanitation fails",
+      },
+      {
+        id: "dry-bags",
+        name: "Dry bags for documents, radio, meds",
+        category: "docs",
+        priority: 1,
+        reason: "Flood / heavy rain common in tropical bands",
+      },
+      {
+        id: "bleach-trop",
+        name: "Unscented bleach for water/surface disinfection",
+        category: "water",
+        priority: 2,
+        reason: "Flood-contaminated water and mold-prone interiors",
+      },
+    );
+  }
+
+  if (climate === "arid") {
+    focus.push(
+      "Arid zones: water is the critical path; dust storms degrade air quality.",
+      "Diurnal swing — nights can still be cold; keep one warm layer.",
+    );
+    items.push(
+      {
+        id: "dust-mask",
+        name: "Dust/particulate masks (N95) + eye goggles",
+        category: "climate",
+        priority: 1,
+        reason: "Dust storms + fallout dust both demand filtration",
+      },
+      {
+        id: "water-arid",
+        name: "Maximum practical water cache + desert still only as last resort",
+        category: "water",
+        priority: 1,
+        qtyHint: "Prioritize volume over variety of other supplies",
+        reason: "Resupply distances and evaporation risk",
+      },
+      {
+        id: "night-warm",
+        name: "Light insulating layer for cold desert nights",
+        category: "climate",
+        priority: 2,
+        reason: "Large day/night temperature swings",
+      },
+    );
+  }
+
+  if (climate === "temperate") {
+    focus.push(
+      "Four-season readiness: plan for both heat waves and cold snaps.",
+      "Standard FEMA-style kit plus nuclear shelter basics is the baseline.",
+    );
+    items.push(
+      {
+        id: "season-flex",
+        name: "Seasonal clothing swap bag (hot + cold options)",
+        category: "climate",
+        priority: 2,
+        reason: "Temperate crises can hit either extreme",
+      },
+      {
+        id: "rain-gear",
+        name: "Waterproof shell + spare socks",
+        category: "climate",
+        priority: 2,
+        reason: "Wet clothing accelerates hypothermia even in mild cold",
+      },
+    );
+  }
+
+  return { items, focus };
+}
+
 function baseKit(settlement: SurvivalProfile["settlement"], climate: SurvivalProfile["climate"]): SurvivalItem[] {
+  const waterQty =
+    climate === "hot" || climate === "tropical" || climate === "arid"
+      ? "6 L / person / day × 7–14 days"
+      : settlement === "city"
+        ? "4 L / person / day × 7–14 days"
+        : "4 L / person / day × 14 days";
+
   const items: SurvivalItem[] = [
     {
       id: "water",
       name: "Drinking water (sealed)",
       category: "water",
       priority: 1,
-      qtyHint: settlement === "city" ? "4 L / person / day × 7–14 days" : "4 L / person / day × 14 days",
+      qtyHint: waterQty,
       reason: "Utilities fail first after blast, EMP-like disruption, or infrastructure damage",
     },
     {
@@ -166,34 +353,6 @@ function baseKit(settlement: SurvivalProfile["settlement"], climate: SurvivalPro
     });
   }
 
-  if (climate === "arctic" || climate === "cold") {
-    items.push(
-      {
-        id: "warm",
-        name: "Cold-weather layers, sleeping bags (0°F / −18°C rated)",
-        category: "climate",
-        priority: 1,
-        reason: "Shelter without heat is life-threatening in cold climates",
-      },
-      {
-        id: "heat-safe",
-        name: "Indoor-safe heat plan (never charcoal indoors)",
-        category: "climate",
-        priority: 1,
-        reason: "CO poisoning risk during blackouts",
-      },
-    );
-  }
-  if (climate === "hot" || climate === "tropical") {
-    items.push({
-      id: "cool",
-      name: "Electrolyte packets, shade tarp, extra water margin",
-      category: "climate",
-      priority: 1,
-      reason: "Heat injury risk rises without power for cooling",
-    });
-  }
-
   return items;
 }
 
@@ -254,7 +413,8 @@ function nuclearItems(minTargetKm: number, nearWatch: boolean): SurvivalItem[] {
 
 export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
   const settlement = settlementType(place);
-  const climate = climateBand(place.lat);
+  const climate = climateBand(place.lat, place.lon);
+  const climatePack = climateKit(climate);
 
   const nearestTargets = ALL_TARGETS.map((t) => ({
     name: t.name,
@@ -269,7 +429,6 @@ export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
     (z) => haversineKm(place.lat, place.lon, z.lat, z.lon) <= z.radiusKm * 1.5,
   );
 
-  // Risk score 0–100 (educational heuristic)
   let risk = 10;
   if (minTargetKm < 15) risk += 45;
   else if (minTargetKm < 50) risk += 30;
@@ -282,7 +441,6 @@ export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
   if (nearestTargets.some((t) => t.kind === "silo" && t.distanceKm < 100)) risk += 12;
   if (nearestTargets.some((t) => t.kind === "ssbn-base" && t.distanceKm < 80)) risk += 8;
 
-  // Nuclear-weapon states' major cities tend higher baseline strategic interest
   const nuclearCountries = new Set(["US", "RU", "CN", "FR", "GB", "IN", "PK", "IL", "KP"]);
   if (place.countryCode && nuclearCountries.has(place.countryCode)) risk += 6;
 
@@ -304,7 +462,7 @@ export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
 
   const factors: string[] = [
     `Settlement type: ${settlement}`,
-    `Climate band: ${climate}`,
+    `Climate band: ${climate} (drives kit priorities)`,
     `Nearest mapped strategic site: ${nearestTargets[0]?.name ?? "n/a"} (~${minTargetKm} km)`,
   ];
   if (nearWatch) factors.push("Inside / near a nuclear-relevant watch zone");
@@ -312,10 +470,10 @@ export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
 
   const items = [
     ...baseKit(settlement, climate),
+    ...climatePack.items,
     ...nuclearItems(minTargetKm, nearWatch),
   ].sort((a, b) => a.priority - b.priority);
 
-  // de-dupe by id
   const seen = new Set<string>();
   const unique = items.filter((i) => {
     if (seen.has(i.id)) return false;
@@ -324,6 +482,7 @@ export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
   });
 
   const actions = [
+    `Climate focus (${climate}): ${climatePack.focus[0] ?? "Match kit to local seasons."}`,
     "Learn local public-alert channels (phone WEA, radio, sirens).",
     "Pick an interior shelter room and practice sealing it once.",
     "Store water/food where you can reach them in the dark.",
@@ -338,15 +497,21 @@ export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
   if (settlement === "city") {
     actions.push("Have a family meeting point outside your neighborhood if phones fail.");
   }
+  if (climate === "cold" || climate === "arctic") {
+    actions.push("Test CO detector and never burn charcoal indoors for heat.");
+  }
+  if (climate === "hot" || climate === "arid" || climate === "tropical") {
+    actions.push("Pre-stage water in multiple locations; heat multiplies daily need.");
+  }
 
   const summary =
     riskBand === "high"
-      ? `${place.name} scores high on this educational proximity model (near strategic geography and/or dense urban). Prioritize shelter, water, medical, and official-alert readiness.`
+      ? `${place.name} scores high on this educational proximity model. Climate band: ${climate}. Prioritize climate-matched water/heat-cool, shelter, medical, and official alerts.`
       : riskBand === "elevated"
-        ? `${place.name} has elevated educational risk factors. Keep a solid 7–14 day kit and a clear shelter / evacuate plan.`
+        ? `${place.name} has elevated educational risk factors (${climate} climate). Keep a solid 7–14 day climate-tuned kit and shelter/evacuate plan.`
         : riskBand === "moderate"
-          ? `${place.name} is moderate on this model. A standard emergency kit plus basic nuclear shelter knowledge is appropriate.`
-          : `${place.name} is relatively lower on this strategic-proximity model. Maintain a normal emergency kit and alert plan.`;
+          ? `${place.name} is moderate on this model (${climate}). Standard emergency kit + climate add-ons + basic nuclear shelter knowledge.`
+          : `${place.name} is relatively lower on strategic proximity (${climate}). Maintain a normal climate-aware emergency kit and alert plan.`;
 
   return {
     place,
@@ -360,7 +525,8 @@ export function buildSurvivalProfile(place: PlaceHit): SurvivalProfile {
     settlement,
     items: unique,
     actions,
+    climateFocus: climatePack.focus,
     disclaimer:
-      "Educational readiness guidance only — not an official warning, medical advice, or prediction of attack. Follow your national civil-defense / FEMA / local emergency management instructions. Risk scores use open geographic proximity heuristics, not classified targeting data.",
+      "Educational readiness guidance only — not an official warning, medical advice, or prediction of attack. Climate bands are latitude/region heuristics, not forecasts. Follow your national civil-defense / FEMA / local emergency management instructions.",
   };
 }

@@ -29,6 +29,8 @@ export interface NuclearNation {
   doctrine: string;
   posture: string;
   climateNote: string;
+  /** Public-domain summary of nuclear strategy / employment concepts */
+  strategy: string;
   systems: DeliverySystem[];
   threatLevel: 1 | 2 | 3 | 4 | 5;
 }
@@ -68,6 +70,8 @@ export const nations: NuclearNation[] = [
     posture: "New START expired Feb 2026 after suspension; high alert strategic forces; ongoing modernization",
     climateNote:
       "Primary peer competitor to US strategic forces. Ukraine war elevated nuclear signaling 2022–25. Large theater nuclear stockpile remains a unique asymmetry in Europe.",
+    strategy:
+      "Assured second strike via full triad; large non-strategic stockpile for regional warfighting options; escalate-to-deescalate concepts remain debated in open literature; presidential nuclear authority; modernization prioritizes mobile ICBMs, Borei SSBNs, and dual-capable theater systems.",
     threatLevel: 5,
     systems: [
       {
@@ -151,6 +155,8 @@ export const nations: NuclearNation[] = [
     posture: "Hair-trigger ICBM alert; ~100 B61 bombs in Europe; full triad modernization (Sentinel, Columbia, B-21)",
     climateNote:
       "Peer rivalry with Russia and rising China triad. New START lapsed 2026. Extended deterrence commitments in Europe and Indo-Pacific shape forward posture.",
+    strategy:
+      "Assured second strike + flexible response; sole presidential launch authority; extended deterrence / NATO nuclear sharing; counterforce and countervalue options maintained; modernization (Sentinel, Columbia, B-21, B61-12/13) to sustain triad credibility after New START lapse.",
     threatLevel: 5,
     systems: [
       {
@@ -210,6 +216,8 @@ export const nations: NuclearNation[] = [
     posture: "Rapid expansion of silo fields; ~600+ warheads; path toward ~1,000 by 2030 per DoD",
     climateNote:
       "Fastest arsenal growth among P5. Three new silo fields (Yumen/Hami/Jilantai region); >100 solid DF-31 class reportedly loaded. No arms-control dialogue with US/Russia.",
+    strategy:
+      "Declared no-first-use and assured retaliation; expanding silo + mobile ICBM force to harden second strike against peer first strike; sea and air legs maturing; opacity on alert status and warhead mating; no bilateral arms-control ceiling with US/Russia.",
     threatLevel: 4,
     systems: [
       {
@@ -277,6 +285,8 @@ export const nations: NuclearNation[] = [
     posture: "SSBN + air-launched cruise; March 2026 signals on possible stockpile increase",
     climateNote:
       "Only EU nuclear state with full national deterrent. Heightened European security after Ukraine; discussions of extended French umbrella.",
+    strategy:
+      "Strict sufficiency and independent national deterrent; final warning / proportional response concepts; sea-based strategic core (M51) plus air-launched ASMP-A; presidential sole authority; European security debates on possible extended assurance.",
     threatLevel: 2,
     systems: [
       {
@@ -313,6 +323,8 @@ export const nations: NuclearNation[] = [
     posture: "Trident-only; stockpile ceiling raised to 260; Dreadnought SSBN replacement",
     climateNote:
       "Sea-based only. Deep integration with US Trident D5 / warhead cooperation. Exploring dual-capable F-35A nuclear sharing option.",
+    strategy:
+      "Minimum credible deterrent via Continuous At-Sea Deterrence (CASD) only; Trident D5 with UK warheads; sole prime-ministerial authority; deep technical cooperation with US; stockpile ceiling raised for resilience against peer threats.",
     threatLevel: 2,
     systems: [
       {
@@ -342,6 +354,8 @@ export const nations: NuclearNation[] = [
     posture: "Most warheads demated; canisterization and SSBN patrols expanding readiness",
     climateNote:
       "Rivalry with Pakistan and China drives arsenal growth. Agni-V and sea-based systems push toward true intercontinental reach.",
+    strategy:
+      "Declared no-first-use and credible minimum deterrence; punitive retaliation doctrine; emerging triad with canisterized missiles and SSBN patrols; most warheads believed demated in peacetime; China and Pakistan as dual peer/near-peer concerns.",
     threatLevel: 3,
     systems: [
       {
@@ -392,6 +406,8 @@ export const nations: NuclearNation[] = [
     posture: "Warheads in central storage; diverse short/medium missile inventory",
     climateNote:
       "India-centric deterrent. Tactical nuclear systems raise crisis-stability concerns. No ICBM program publicly fielded.",
+    strategy:
+      "Full-spectrum deterrence including short-range tactical options intended to deter Indian conventional thrusts; warheads typically in central storage; diverse ballistic and cruise inventory; India-centric targeting logic raises crisis-stability concerns in open analysis.",
     threatLevel: 3,
     systems: [
       {
@@ -441,6 +457,8 @@ export const nations: NuclearNation[] = [
     posture: "Estimated ~90 warheads; Jericho missiles, aircraft, possible Dolphin SLCM",
     climateNote:
       "Undeclared arsenal. Middle East security architecture; Iran nuclear program remains primary regional driver.",
+    strategy:
+      "Nuclear opacity (neither confirm nor deny); last-resort strategic insurance often labeled 'Samson Option' in open literature; multi-leg estimated force (missile, air, possible sea-based); regional focus on existential threats and Iran nuclear trajectory.",
     threatLevel: 2,
     systems: [
       {
@@ -483,6 +501,8 @@ export const nations: NuclearNation[] = [
     posture: "ICBM tests demonstrating CONUS reach; ~60 assembled warheads estimated; growing fissile stock",
     climateNote:
       "Most active ICBM test program among smaller arsenals. Sanctions, alliance drills, and succession politics keep peninsula at elevated risk.",
+    strategy:
+      "Explicit nuclear-armed state under domestic law; deterrent plus warfighting language; ICBM demonstrations aimed at US homeland; tactical nuclear claims for peninsula war scenarios; opaque C2 and high crisis instability relative to arsenal size.",
     threatLevel: 4,
     systems: [
       {

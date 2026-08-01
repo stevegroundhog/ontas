@@ -158,11 +158,23 @@ export function PlaceSearch({ onSelectPlace, selectedPlace, profile }: PlaceSear
               <p className="mt-2 text-sm leading-relaxed text-fg">{profile.summary}</p>
               <div className="mt-2 flex flex-wrap gap-1.5">
                 <span className="chip">{profile.settlement}</span>
-                <span className="chip">{profile.climate}</span>
+                <span className="chip capitalize">{profile.climate}</span>
                 <span className="chip tabular">
                   {selectedPlace.lat.toFixed(2)}°, {selectedPlace.lon.toFixed(2)}°
                 </span>
               </div>
+              {profile.climateFocus?.length > 0 && (
+                <div className="mt-3 rounded-xl border border-sky-500/25 bg-sky-500/10 px-3 py-2">
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-sky-300">
+                    Climate-tuned kit focus
+                  </div>
+                  <ul className="mt-1 space-y-1 text-[11px] text-fg/90">
+                    {profile.climateFocus.map((line) => (
+                      <li key={line}>· {line}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
 
             <div>

@@ -5,7 +5,6 @@ import {
   CONFLICT_TYPE_LABEL,
   sortConflictsByIntensity,
   type ArmedConflict,
-  type ConflictIntensity,
   type ConflictRegion,
 } from "@/data/conflicts";
 import { formatRelative } from "@/data/threat-news";
@@ -13,6 +12,7 @@ import {
   fetchConflictReports,
   type ConflictReport,
 } from "@/server/conflicts";
+import { formatNum } from "@/lib/utils";
 
 interface ConflictsPanelProps {
   selectedId: string | null;
@@ -28,6 +28,14 @@ const REGIONS: (ConflictRegion | "all")[] = [
   "Asia",
   "Americas",
 ];
+
+function formatToll(c: ArmedConflict): string {
+  if (c.fatalitiesHigh <= 0 && c.fatalitiesLow <= 0) {
+    return "No continuous combat toll (tension phase)";
+  }
+  if (c.fatalitiesLow === c.fatalitiesHigh) return `~${formatNum(c.fatalitiesLow)}`;
+  return `${formatNum(c.fatalitiesLow)}–${formatNum(c.fatalitiesHigh)}`;
+}
 
 export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProps) {
   const [region, setRegion] = useState<ConflictRegion | "all">("all");
@@ -98,8 +106,8 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
           Select any major war or conflict · live open reports
         </div>
         <p className="mt-1 text-[11px] leading-snug text-muted">
-          Neutral factual registry + multi-source wires (UN, BBC, Google News). Not propaganda —
-          always open original articles.
+          Neutral registry with open fatality ranges (contested) + multi-source wires. Not
+          propaganda — open original articles.
         </p>
         <input
           type="search"
@@ -131,7 +139,6 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
       </div>
 
       <div className="grid min-h-0 flex-1 grid-rows-2 lg:grid-rows-1 lg:grid-cols-2">
-        {/* Conflict picker */}
         <div className="min-h-0 overflow-y-auto border-b border-border lg:border-b-0 lg:border-r">
           <div className="px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
             {list.length} conflicts
@@ -165,10 +172,10 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
                         >
                           {meta.label}
                         </span>
-                        <span className="chip">{c.region}</span>
+                        <span className="chip tabular text-[10px]">{formatToll(c)}</span>
                         {c.nuclearRisk !== "none" && (
                           <span className="chip border-amber-400/50 text-amber-300">
-                            nuclear risk: {c.nuclearRisk}
+                            nuclear: {c.nuclearRisk}
                           </span>
                         )}
                       </span>
@@ -180,7 +187,6 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
           </ul>
         </div>
 
-        {/* Detail + reports */}
         <div className="flex min-h-0 flex-col overflow-hidden">
           {selected ? (
             <ConflictDetail conflict={selected} />
@@ -226,7 +232,9 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
           <div className="min-h-0 flex-1 overflow-y-auto">
             {reports.length === 0 ? (
               <div className="p-4 text-sm text-muted">
-                {loading ? "Fetching factual reports…" : "No live items matched. Try refresh or another conflict."}
+                {loading
+                  ? "Fetching factual reports…"
+                  : "No live items matched. Try refresh or another conflict."}
               </div>
             ) : (
               <ul>
@@ -248,18 +256,16 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
                       </div>
                     </button>
                     {expanded === r.id && (
-                      <div className="space-y-2 border-t border-border/30 bg-black/20 px-3 py-2 text-xs text-fg/90">
-                        <p className="leading-relaxed">{r.summary}</p>
-                        {r.link && (
-                          <a
-                            href={r.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block rounded-full border border-rose-400/40 px-3 py-1 text-rose-200 hover:bg-rose-500/10"
-                          >
-                            Open original source
-                          </a>
-                        )}
+                      <div className="space-y-2 px-3 pb-3 text-xs text-muted">
+                        {r.summary && <p className="leading-relaxed">{r.summary}</p>}
+                        <a
+                          href={r.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-sky-300 underline"
+                        >
+                          Open original source
+                        </a>
                       </div>
                     )}
                   </li>
@@ -274,27 +280,30 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
 }
 
 function ConflictDetail({ conflict }: { conflict: ArmedConflict }) {
-  const meta = CONFLICT_INTENSITY_META[conflict.intensity as ConflictIntensity];
+  const meta = CONFLICT_INTENSITY_META[conflict.intensity];
   return (
-    <div className="border-b border-border px-3 py-2">
+    <div className="border-b border-border px-3 py-3 text-xs leading-relaxed">
       <div className="text-sm font-bold text-bright">{conflict.name}</div>
-      <p className="mt-1 text-[11px] leading-relaxed text-muted">{conflict.summary}</p>
-      <div className="mt-2 flex flex-wrap gap-1 text-[10px]">
+      <p className="mt-1 text-fg/90">{conflict.summary}</p>
+      <div className="mt-2 flex flex-wrap gap-1">
         <span className="chip" style={{ borderColor: meta.color, color: meta.color }}>
           {meta.label}
         </span>
         <span className="chip">{CONFLICT_TYPE_LABEL[conflict.type]}</span>
-        <span className="chip">since {conflict.startYear}</span>
+        <span className="chip">{conflict.region}</span>
         <span className="chip">{conflict.status}</span>
+        <span className="chip">since {conflict.startYear}</span>
       </div>
-      <div className="mt-2 text-[11px] text-muted">
-        <span className="font-semibold text-fg">Parties: </span>
-        {conflict.parties.join(" · ")}
+      <div className="mt-3 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2">
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-rose-300">
+          Open fatality range (contested)
+        </div>
+        <div className="mt-0.5 text-lg font-bold tabular text-bright">{formatToll(conflict)}</div>
+        <div className="text-[10px] text-muted">As of {conflict.fatalitiesAsOf}</div>
+        <p className="mt-1 text-[11px] text-fg/90">{conflict.fatalitiesNote}</p>
+        <p className="mt-1 text-[10px] text-dim">Sources: {conflict.fatalitiesSource}</p>
       </div>
-      <div className="mt-1 text-[11px] text-muted">
-        <span className="font-semibold text-fg">Casualties (open est.): </span>
-        {conflict.fatalitiesNote}
-      </div>
+      <div className="mt-2 text-[10px] text-muted">Parties: {conflict.parties.join(" · ")}</div>
       <div className="mt-1 flex flex-wrap gap-2">
         {conflict.sources.map((s) => (
           <a
