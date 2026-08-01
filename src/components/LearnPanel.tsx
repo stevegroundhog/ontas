@@ -43,8 +43,8 @@ const SECTIONS: {
     blurb: "Menu button, jump search, and when the map appears.",
     body: [
       {
-        h: "Menu (not always on screen)",
-        p: "Tap Menu in the header to open all desks. Groups (Situational, Arsenals, Strategic, Protect) appear only inside that drawer so the main screen stays clean — Live map, Conflicts, Countries, Yields & aircraft, Rad / CBRN, Terror history, and the rest.",
+        h: "Left menu + Quick find",
+        p: "On desktop the left sidebar lists every desk by group. On Live map, Quick find shows the same full list as buttons. On phones, open Menu for the sidebar.",
       },
       {
         h: "Jump search",
