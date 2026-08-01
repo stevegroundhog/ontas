@@ -74,14 +74,17 @@ Open **http://localhost:8080**
 
 ## Features
 
-- **Live map** — countries, nuclear states, conflict markers, seismic watch, open AIS  
+- **Sidebar navigation + Jump search** — Situational / Arsenals / Strategic / Protect  
+- **Live map** — nuclear states, conflicts, seismic, SSBN estimates, open AIS  
 - **Unofficial DEFCON OSINT** — public estimate only (clearly labeled)  
-- **Conflicts desk** — major wars with neutral facts + live open reports  
-- **Nuclear forces** — open-source arsenal estimates  
-- **Ships & subs** — SSBN patrol estimates + regional open AIS  
-- **Survivability search** — any place → readiness kit ideas  
-- **Beginner guide** — geopolitics, nukes, DEFCON in plain language  
-- **Source health board** — public feeds OK / LIMITED / DOWN  
+- **Conflicts desk** — neutral facts, open fatality ranges, live reports  
+- **Countries / Compare** — force cards, strategy notes, delivery systems  
+- **Yields & aircraft** — open kt/Mt bands + nuclear-capable aircraft  
+- **Terror history** — public nuclear/radiological threats & attempts  
+- **Rad / CBRN** — radiation types, decon, stay time, detonation steps  
+- **Survivability search** — climate-aware kits for any place  
+- **Launches, Treaties, Scenarios, Climate brief, News, Live intel**  
+- **Beginner guide + Essay** (`/article`) — plain-language education  
 
 ## Public data sources
 
