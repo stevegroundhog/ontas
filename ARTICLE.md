@@ -2,8 +2,9 @@
 
 ### A guide to ONTAS (current build) — open map, arsenals, conflicts, literacy desks, and honest limits
 
-**Open source:** https://github.com/stevegroundhog/ontas  
-**In-app essay:** `/article` · **Dashboard:** `/`  
+**Open source:** [github.com/stevegroundhog/ontas](https://github.com/stevegroundhog/ontas)  
+**One-click deploy:** [Vercel](https://vercel.com/new/clone?repository-url=https://github.com/stevegroundhog/ontas) · [Render](https://render.com/deploy?repo=https://github.com/stevegroundhog/ontas) · [Codespaces](https://codespaces.new/stevegroundhog/ontas)  
+**In-app essay:** `/article` after you deploy · **Share guide:** [HOW-TO-SHARE.md](./HOW-TO-SHARE.md)
 
 *Educational only. Not an official warning system. Official U.S. DEFCON is classified. Real U.S. emergencies use FEMA IPAWS / EAS / Wireless Emergency Alerts.*
 
@@ -151,7 +152,7 @@ Yield is a rough energy measure. Open sources often give **bands**. ONTAS shows 
 - Not a complete encyclopedia of every warhead variant.  
 - Not propaganda for any side in a conflict.
 
-Why open source? If a map claims authority, you should see **how** it works. Fork it, fix it, or throw it away: https://github.com/stevegroundhog/ontas
+Why open source? If a map claims authority, you should see **how** it works. Fork it, fix it, or one-click deploy it: https://github.com/stevegroundhog/ontas
 
 ---
 

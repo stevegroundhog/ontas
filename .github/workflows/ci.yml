@@ -4,19 +4,53 @@ on:
   push:
     branches: [main]
   pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   check:
+    name: Typecheck & Node build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
-          node-version: "22"
+          node-version-file: ".nvmrc"
           cache: npm
-      - run: npm ci
-      - run: npm run typecheck
-      - name: Build (Node server)
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Build (node-server — Docker / Render / self-host)
         run: npm run build:node
         env:
           NITRO_PRESET: node-server
+
+      - name: Assert server output exists
+        run: test -f .output/server/index.mjs
+
+  vercel-build:
+    name: Build (Vercel preset)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build (default Vercel Nitro preset)
+        run: npm run build

@@ -1,0 +1,21 @@
+{
+  "name": "ONTAS",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:22",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "ONTAS app",
+      "onAutoForward": "notify"
+    }
+  },
+  "postCreateCommand": "npm ci",
+  "postStartCommand": "echo 'Run: npm run dev  → then open port 8080'",
+  "customizations": {
+    "vscode": {
+      "extensions": ["dbaeumer.vscode-eslint", "esbenp.prettier-vscode"],
+      "settings": {
+        "editor.formatOnSave": true
+      }
+    }
+  }
+}

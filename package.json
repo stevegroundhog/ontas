@@ -97,20 +97,26 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stevegroundhog/ontas.git"
+    "url": "git+https://github.com/stevegroundhog/ontas.git"
   },
   "keywords": [
+    "ontas",
     "nuclear",
     "defcon",
     "osint",
     "education",
     "geopolitics",
-    "open-source"
+    "open-source",
+    "tanstack",
+    "react",
+    "typescript",
+    "vercel",
+    "docker"
   ],
   "engines": {
     "node": ">=22"
   },
-  "homepage": "https://github.com/stevegroundhog/ontas",
+  "homepage": "https://github.com/stevegroundhog/ontas#readme",
   "bugs": {
     "url": "https://github.com/stevegroundhog/ontas/issues"
   }

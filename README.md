@@ -1,10 +1,21 @@
 # ONTAS — Open Nuclear Threat Awareness System
 
+[![CI](https://github.com/stevegroundhog/ontas/actions/workflows/ci.yml/badge.svg)](https://github.com/stevegroundhog/ontas/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-skyblue.svg)](./LICENSE)
+[![Node 22+](https://img.shields.io/badge/node-%3E%3D22-brightgreen.svg)](./.nvmrc)
+[![Deploy with Vercel](https://img.shields.io/badge/deploy-Vercel-black?logo=vercel)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fstevegroundhog%2Fontas&project-name=ontas&repository-name=ontas)
+
 Educational **unclassified** dashboard for nuclear awareness, global conflicts, and public sensors.
 
 > **Not an official warning system.** Official U.S. DEFCON is classified. Real emergencies use **FEMA IPAWS / EAS / Wireless Emergency Alerts** and local authorities.
 
-**Repo:** [github.com/stevegroundhog/ontas](https://github.com/stevegroundhog/ontas) · **Essay:** [ARTICLE.md](./ARTICLE.md) (also `/article` after deploy)
+| | |
+| --- | --- |
+| **Repo** | [github.com/stevegroundhog/ontas](https://github.com/stevegroundhog/ontas) |
+| **Essay** | [ARTICLE.md](./ARTICLE.md) · live path `/article` after deploy |
+| **Share guide** | [HOW-TO-SHARE.md](./HOW-TO-SHARE.md) |
+| **Contributing** | [CONTRIBUTING.md](./CONTRIBUTING.md) |
+| **Security** | [SECURITY.md](./SECURITY.md) |
 
 ---
 
@@ -13,16 +24,18 @@ Educational **unclassified** dashboard for nuclear awareness, global conflicts, 
 ### A) Free public website (best for sharing)
 
 Click → sign in with GitHub → **Deploy**. You get a link anyone can open in a browser.  
-No API keys required for the basic educational app.
+**No API keys required** for the basic educational app.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fstevegroundhog%2Fontas&project-name=ontas&repository-name=ontas&envDescription=No%20secrets%20required%20for%20basic%20run)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fstevegroundhog%2Fontas&project-name=ontas&repository-name=ontas&envDescription=No%20secrets%20required%20for%20basic%20run&demo-title=ONTAS&demo-description=Educational%20nuclear%20%26%20conflict%20awareness%20map%20(public%20data%20only))
 
 [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/stevegroundhog/ontas)
 
-| Host | What happens | Notes |
-| --- | --- | --- |
-| **Vercel** | `npm ci` + `npm run build` (Nitro `vercel` preset) | Fastest shareable URL |
-| **Render** | `npm ci` + `npm run build:node` then `npm start` | Free tier may sleep when idle |
+| Host | Build | Start | Notes |
+| --- | --- | --- | --- |
+| **[Vercel](https://vercel.com/new/clone?repository-url=https://github.com/stevegroundhog/ontas)** | `npm ci` + `npm run build` | Nitro **vercel** preset | Best for a snappy public URL |
+| **[Render](https://render.com/deploy?repo=https://github.com/stevegroundhog/ontas)** | `npm ci` + `npm run build:node` | `npm start` | Free tier may sleep when idle |
+| **Docker** | multi-stage image | port **8080** | See B |
+| **Codespaces** | `npm ci` | `npm run dev` | See E |
 
 Plain English walkthrough: **[HOW-TO-SHARE.md](./HOW-TO-SHARE.md)**
 
@@ -42,9 +55,8 @@ Open **http://localhost:8080**
 Stop: `Ctrl+C` (or `docker compose down` if you used `-d`).
 
 ```bash
-# Detached
-docker compose up --build -d
-docker compose down
+docker compose up --build -d   # background
+docker compose down            # stop
 ```
 
 ---
@@ -69,12 +81,12 @@ Menu: **Docker** or **Node**. Non-interactive:
 
 ### D) Node.js (no Docker)
 
-**Requirements:** Node **22+** ([nodejs.org](https://nodejs.org))
+**Requirements:** Node **22+** ([nodejs.org](https://nodejs.org) · see `.nvmrc`)
 
 ```bash
 git clone https://github.com/stevegroundhog/ontas.git
 cd ontas
-npm ci          # or: npm install
+npm ci
 npm run build:node
 npm start
 ```
@@ -85,22 +97,21 @@ Open **http://localhost:8080**
 
 ### E) GitHub Codespaces (browser IDE)
 
-[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/stevegroundhog/ontas)
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/stevegroundhog/ontas?quickstart=1)
 
-In the terminal after the codespace starts:
+Dev container installs deps automatically (`npm ci`). Then:
 
 ```bash
-npm ci
 npm run dev
 ```
 
-Then use the **Ports** tab → open **8080**.
+**Ports** tab → open **8080**.
 
 ---
 
 ## Features (current)
 
-- **Quick find** navigation (Situational / Arsenals / Strategic / Protect) + Jump search + **Share link** deep URLs  
+- **Quick find** (Situational / Arsenals / Strategic / Protect) + Jump search + **Share link** deep URLs  
 - **Live map** — nuclear states, conflicts, seismic, SSBN *estimates*, open Baltic AIS, **range bands**  
 - **Unofficial DEFCON OSINT** + **arms-control clock** + NOAA space weather (Kp)  
 - **Conflicts** — neutral facts, open fatality ranges, live reports, humanitarian wire  
@@ -144,4 +155,4 @@ MIT — see [LICENSE](./LICENSE).
 
 ## Contributing
 
-Keep sources **public/unclassified**, keep disclaimers, no fake “official DEFCON.” PRs welcome.
+See **[CONTRIBUTING.md](./CONTRIBUTING.md)**. Keep sources public/unclassified, keep disclaimers, no fake “official DEFCON.”

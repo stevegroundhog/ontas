@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How to install / share
+    url: https://github.com/stevegroundhog/ontas/blob/main/HOW-TO-SHARE.md
+    about: One-click Vercel/Render, Docker, and Codespaces
+  - name: Essay (what public data can tell you)
+    url: https://github.com/stevegroundhog/ontas/blob/main/ARTICLE.md
+    about: Read before requesting “official DEFCON” features
