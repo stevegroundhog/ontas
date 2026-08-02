@@ -219,3 +219,9 @@
     opacity: 0.04;
   }
 }
+
+
+@keyframes ontas-ring-pulse {
+  0%, 100% { opacity: 0.9; }
+  50% { opacity: 1; }
+}

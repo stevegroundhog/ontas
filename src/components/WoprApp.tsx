@@ -818,7 +818,16 @@ export function WoprApp() {
                   <button
                     type="button"
                     className={`soft-btn min-h-11 sm:min-h-0 ${showRanges ? "active" : ""}`}
-                    onClick={() => setShowRanges((v) => !v)}
+                    onClick={() => {
+                      setShowRanges((v) => {
+                        const next = !v;
+                        if (next) {
+                          setLayersOpen(true);
+                          setSelectedId((id) => id ?? "us");
+                        }
+                        return next;
+                      });
+                    }}
                     title="Illustrative open-estimate range bands — not targeting"
                   >
                     Range bands
@@ -831,9 +840,10 @@ export function WoprApp() {
                 )}
               </div>
               {showRanges && (
-                <p className="mt-1.5 text-[10px] text-dim">
-                  Range bands = published open max ranges for ICBM/SLBM (and theater) from capital pin —
-                  illustrative only, not operational.
+                <p className="mt-1.5 text-[10px] leading-snug text-dim">
+                  <span className="font-semibold text-pink-300">Range bands on</span>
+                  {" — "}great-circle open max ranges (ICBM / SLBM / bomber / theater) from capital pin.
+                  Click a nuclear state for bold labeled rings. Not targeting or flight times.
                 </p>
               )}
             </div>

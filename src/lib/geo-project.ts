@@ -69,3 +69,78 @@ export function pointOnArc(
     y: u * u * from.y + 2 * u * t * c.y + t * t * to.y,
   };
 }
+
+
+const EARTH_KM = 6371;
+
+/** Destination along a great-circle bearing (degrees, km). */
+export function destinationPoint(
+  lat: number,
+  lon: number,
+  bearingDeg: number,
+  distanceKm: number,
+): { lat: number; lon: number } {
+  const δ = distanceKm / EARTH_KM;
+  const θ = (bearingDeg * Math.PI) / 180;
+  const φ1 = (lat * Math.PI) / 180;
+  const λ1 = (lon * Math.PI) / 180;
+  const sinφ2 =
+    Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(θ);
+  const φ2 = Math.asin(Math.min(1, Math.max(-1, sinφ2)));
+  const λ2 =
+    λ1 +
+    Math.atan2(
+      Math.sin(θ) * Math.sin(δ) * Math.cos(φ1),
+      Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2),
+    );
+  return {
+    lat: (φ2 * 180) / Math.PI,
+    lon: ((((λ2 * 180) / Math.PI) + 540) % 360) - 180,
+  };
+}
+
+/**
+ * Equirectangular path for a constant-range ring (great-circle).
+ * Splits on antimeridian jumps so strokes do not cross the map.
+ */
+export function rangeRingPath(
+  lat: number,
+  lon: number,
+  rangeKm: number,
+  steps = 96,
+): string {
+  if (rangeKm <= 0) return "";
+  const pts: { x: number; y: number }[] = [];
+  for (let i = 0; i <= steps; i++) {
+    const brng = (i / steps) * 360;
+    const d = destinationPoint(lat, lon, brng, rangeKm);
+    pts.push(project(d.lat, d.lon));
+  }
+  let d = "";
+  let started = false;
+  let prevX: number | null = null;
+  for (const pt of pts) {
+    if (prevX != null && Math.abs(pt.x - prevX) > MAP_W * 0.45) {
+      started = false;
+    }
+    if (!started) {
+      d += `M${pt.x.toFixed(2)},${pt.y.toFixed(2)}`;
+      started = true;
+    } else {
+      d += `L${pt.x.toFixed(2)},${pt.y.toFixed(2)}`;
+    }
+    prevX = pt.x;
+  }
+  return d;
+}
+
+/** Label position at bearing (default east-ish) on the ring. */
+export function rangeRingLabelPoint(
+  lat: number,
+  lon: number,
+  rangeKm: number,
+  bearingDeg = 55,
+): { x: number; y: number } {
+  const d = destinationPoint(lat, lon, bearingDeg, rangeKm);
+  return project(d.lat, d.lon);
+}

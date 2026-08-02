@@ -23,7 +23,10 @@ import {
   geometryToPath,
   pointOnArc,
   project,
+  rangeRingLabelPoint,
+  rangeRingPath,
 } from "@/lib/geo-project";
+import { formatNum } from "@/lib/utils";
 import type { AisContact } from "@/server/maritime";
 import type { SeismicEvent } from "@/server/threat-intel";
 import type { PlaceHit } from "@/server/geocode";
@@ -218,6 +221,13 @@ export function WorldMap({
           </filter>
           <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
             <feGaussianBlur stdDeviation="2.4" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="rangeGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3.2" result="b" />
             <feMerge>
               <feMergeNode in="b" />
               <feMergeNode in="SourceGraphic" />
@@ -521,37 +531,131 @@ export function WorldMap({
         {showRanges &&
           nations
             .filter((n) => !selectedId || n.id === selectedId)
-            .map((n) => {
-              const icbm = Math.max(
-                0,
-                ...n.systems.filter((s) => s.type === "ICBM" || s.type === "SLBM").map((s) => s.rangeKm),
-              );
-              const theater = Math.max(
-                0,
-                ...n.systems
-                  .filter((s) => s.type === "IRBM/MRBM" || s.type === "Cruise")
-                  .map((s) => s.rangeKm),
-              );
-              const p = project(n.lat, n.lon);
-              const rings: { rKm: number; color: string; label: string }[] = [];
-              if (icbm > 0) rings.push({ rKm: icbm, color: "#f472b6", label: "ICBM/SLBM max" });
-              if (theater > 0 && theater < icbm)
-                rings.push({ rKm: theater, color: "#fbbf24", label: "theater max" });
-              return rings.map((ring) => {
-                const latDelta = ring.rKm / 111;
-                const r = Math.abs(project(n.lat + latDelta, n.lon).y - p.y);
+            .flatMap((n) => {
+              const focus = !selectedId || selectedId === n.id;
+              const maxOf = (types: string[]) => {
+                const vals = n.systems
+                  .filter((s) => types.includes(s.type) && s.rangeKm > 0)
+                  .map((s) => s.rangeKm);
+                return vals.length ? Math.max(...vals) : 0;
+              };
+              const icbm = maxOf(["ICBM"]);
+              const slbm = maxOf(["SLBM"]);
+              const bomber = maxOf(["Bomber"]);
+              const theater = maxOf(["IRBM/MRBM", "Cruise", "Tactical"]);
+              const rings: {
+                rKm: number;
+                color: string;
+                label: string;
+                width: number;
+                dash?: string;
+              }[] = [];
+              if (icbm > 0)
+                rings.push({
+                  rKm: icbm,
+                  color: "#f472b6",
+                  label: `ICBM ${formatNum(icbm)} km`,
+                  width: focus ? 2.8 : 1.3,
+                });
+              if (slbm > 0 && (icbm <= 0 || Math.abs(slbm - icbm) > 350))
+                rings.push({
+                  rKm: slbm,
+                  color: "#c084fc",
+                  label: `SLBM ${formatNum(slbm)} km`,
+                  width: focus ? 2.4 : 1.15,
+                });
+              if (bomber > 0 && bomber < Math.max(icbm, slbm, 1) * 0.97)
+                rings.push({
+                  rKm: bomber,
+                  color: "#22d3ee",
+                  label: `Bomber ${formatNum(bomber)} km`,
+                  width: focus ? 2.0 : 1.0,
+                  dash: "7 4",
+                });
+              if (theater > 0 && theater < Math.max(icbm, slbm, bomber || 0, 1))
+                rings.push({
+                  rKm: theater,
+                  color: "#fbbf24",
+                  label: `Theater ${formatNum(theater)} km`,
+                  width: focus ? 1.85 : 0.95,
+                  dash: "3 3",
+                });
+              rings.sort((a, b) => b.rKm - a.rKm);
+              const origin = project(n.lat, n.lon);
+              return rings.map((ring, idx) => {
+                const path = rangeRingPath(n.lat, n.lon, ring.rKm, focus ? 128 : 80);
+                // Prefer label bearings that stay mid-map when possible
+                const bearings = [25, 70, 110, 200, 250, 300];
+                let labelPt = rangeRingLabelPoint(n.lat, n.lon, ring.rKm, bearings[idx % bearings.length]!);
+                // clamp into view with padding
+                labelPt = {
+                  x: Math.min(MAP_W - 130, Math.max(8, labelPt.x)),
+                  y: Math.min(MAP_H - 16, Math.max(28, labelPt.y)),
+                };
+                const op = focus ? 1 : 0.32;
+                const showLabel = focus && idx === 0; // only outermost on-map label
                 return (
-                  <g key={`${n.id}-${ring.label}`} pointerEvents="none">
-                    <circle
-                      cx={p.x}
-                      cy={p.y}
-                      r={Math.min(r, 420)}
+                  <g
+                    key={`${n.id}-${ring.label}`}
+                    pointerEvents="none"
+                    opacity={op}
+                    filter={focus ? "url(#rangeGlow)" : undefined}
+                  >
+                    <path
+                      d={path}
                       fill="none"
                       stroke={ring.color}
-                      strokeWidth="0.9"
-                      strokeDasharray="4 3"
-                      opacity={selectedId === n.id ? 0.55 : 0.22}
+                      strokeWidth={focus ? 18 : 11}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      opacity={focus ? 0.2 : 0.08}
                     />
+                    <path
+                      d={path}
+                      fill="none"
+                      stroke={ring.color}
+                      strokeWidth={ring.width}
+                      strokeDasharray={ring.dash}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      opacity={focus ? 1 : 0.4}
+                    />
+                    {focus && idx === 0 && (
+                      <circle
+                        cx={origin.x}
+                        cy={origin.y}
+                        r={6.5}
+                        fill={ring.color}
+                        fillOpacity={0.35}
+                        stroke="#f8fafc"
+                        strokeWidth={1.2}
+                      />
+                    )}
+                    {showLabel && (
+                      <g transform={`translate(${labelPt.x},${labelPt.y})`}>
+                        <rect
+                          x={-3}
+                          y={-10}
+                          rx={5}
+                          height={14}
+                          width={Math.min(128, ring.label.length * 5.4 + 14)}
+                          fill="#0b1220f0"
+                          stroke={ring.color}
+                          strokeWidth={1.1}
+                        />
+                        <text
+                          x={4}
+                          y={1}
+                          fill={ring.color}
+                          fontSize="8.5"
+                          fontWeight="700"
+                          fontFamily="Inter, system-ui, sans-serif"
+                          dominantBaseline="middle"
+                        >
+                          {n.short} · {ring.label}
+                        </text>
+                      </g>
+                    )}
                   </g>
                 );
               });
@@ -661,7 +765,11 @@ export function WorldMap({
             {searchedPlace ? ` · PIN ${searchedPlace.name}` : ""}
             {showSeismic && watchSeismic.length ? ` · ${watchSeismic.length} seismic watch` : ""}
             {showAis && ais.length ? ` · ${ais.length} Baltic AIS` : ""}
-            {showRanges ? " · range bands (illustrative)" : ""}
+            {showRanges
+              ? selectedId
+                ? ` · range bands · ${selectedId.toUpperCase()}`
+                : " · range bands · select a nation"
+              : ""}
           </text>
         </g>
       </svg>
@@ -676,7 +784,14 @@ export function WorldMap({
             ...(showSubs ? [["SSBN est.", "#a78bfa"] as const] : []),
             ...(showAis ? [["AIS Baltic", "#fbbf24"] as const] : []),
             ...(showSeismic ? [["Seismic", "#f87171"] as const] : []),
-            ...(showRanges ? [["Range band", "#f472b6"] as const] : []),
+            ...(showRanges
+              ? ([
+                  ["ICBM max", "#f472b6"],
+                  ["SLBM max", "#c084fc"],
+                  ["Bomber", "#22d3ee"],
+                  ["Theater", "#fbbf24"],
+                ] as [string, string][])
+              : []),
           ] as [string, string][]
         ).map(([label, color]) => (
           <span
@@ -688,6 +803,46 @@ export function WorldMap({
           </span>
         ))}
       </div>
+      {showRanges && (
+        <div className="pointer-events-none absolute right-2 top-2 max-w-[220px] rounded-lg border border-pink-400/50 bg-[#0b1220f8] px-2.5 py-2 text-[10px] leading-snug text-slate-200 shadow-xl backdrop-blur-sm">
+          <div className="font-bold tracking-wide text-pink-300">RANGE BANDS</div>
+          <p className="mt-0.5 text-slate-400">
+            Great-circle open max ranges from capital/C2. Illustrative only — not targeting or
+            flight times.
+          </p>
+          {selectedId ? (
+            <ul className="mt-1.5 space-y-0.5 border-t border-white/10 pt-1.5">
+              {(() => {
+                const n = nations.find((x) => x.id === selectedId);
+                if (!n) return null;
+                const maxOf = (types: string[]) => {
+                  const vals = n.systems
+                    .filter((s) => types.includes(s.type) && s.rangeKm > 0)
+                    .map((s) => s.rangeKm);
+                  return vals.length ? Math.max(...vals) : 0;
+                };
+                const rows = [
+                  ["ICBM", maxOf(["ICBM"]), "#f472b6"],
+                  ["SLBM", maxOf(["SLBM"]), "#c084fc"],
+                  ["Bomber", maxOf(["Bomber"]), "#22d3ee"],
+                  ["Theater", maxOf(["IRBM/MRBM", "Cruise", "Tactical"]), "#fbbf24"],
+                ] as const;
+                return rows
+                  .filter(([, km]) => km > 0)
+                  .map(([lab, km, col]) => (
+                    <li key={lab} className="flex justify-between gap-2 tabular">
+                      <span style={{ color: col }}>{lab}</span>
+                      <span className="text-slate-300">{formatNum(km)} km</span>
+                    </li>
+                  ));
+              })()}
+              <li className="pt-0.5 text-[9px] text-slate-500">{nations.find((x) => x.id === selectedId)?.short} selected</li>
+            </ul>
+          ) : (
+            <p className="mt-1 font-semibold text-amber-300">Click a nuclear state for labeled rings.</p>
+          )}
+        </div>
+      )}
     </div>
   );
 }
