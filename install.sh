@@ -12,7 +12,7 @@ NC='\033[0m'
 
 echo ""
 echo -e "${BLUE}╔══════════════════════════════════════════╗${NC}"
-echo -e "${BLUE}║   ONTAS — easy install                   ║${NC}"
+echo -e "${BLUE}║   ONTAS — one-click style install        ║${NC}"
 echo -e "${BLUE}║   Open Nuclear Threat Awareness System   ║${NC}"
 echo -e "${BLUE}╚══════════════════════════════════════════╝${NC}"
 echo ""
@@ -79,10 +79,13 @@ case "$mode" in
     fi
     echo ""
     echo -e "${GREEN}Installing dependencies…${NC}"
-    npm install
-    echo -e "${GREEN}Building…${NC}"
-    export NITRO_PRESET=node-server
-    npm run build
+    if [[ -f package-lock.json ]]; then
+      npm ci || npm install
+    else
+      npm install
+    fi
+    echo -e "${GREEN}Building (node-server preset)…${NC}"
+    npm run build:node
     echo ""
     echo -e "${GREEN}✓ Starting on http://localhost:8080${NC}"
     echo "  Press Ctrl+C to stop"

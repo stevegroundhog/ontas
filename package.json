@@ -93,7 +93,7 @@
     "vite": "^8.1.0"
   },
   "version": "1.0.0",
-  "description": "ONTAS \u2014 Open Nuclear Threat Awareness System (educational, unclassified public data)",
+  "description": "ONTAS \u2014 Open Nuclear Threat Awareness System (educational, public data only)",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -108,6 +108,10 @@
     "open-source"
   ],
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
+  },
+  "homepage": "https://github.com/stevegroundhog/ontas",
+  "bugs": {
+    "url": "https://github.com/stevegroundhog/ontas/issues"
   }
 }
