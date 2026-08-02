@@ -27,6 +27,7 @@ import {
   rangeRingPath,
 } from "@/lib/geo-project";
 import { formatNum } from "@/lib/utils";
+import { bandsForNation } from "@/lib/range-bands";
 import type { AisContact } from "@/server/maritime";
 import type { SeismicEvent } from "@/server/threat-intel";
 import type { PlaceHit } from "@/server/geocode";
@@ -533,70 +534,27 @@ export function WorldMap({
             .filter((n) => !selectedId || n.id === selectedId)
             .flatMap((n) => {
               const focus = !selectedId || selectedId === n.id;
-              const maxOf = (types: string[]) => {
-                const vals = n.systems
-                  .filter((s) => types.includes(s.type) && s.rangeKm > 0)
-                  .map((s) => s.rangeKm);
-                return vals.length ? Math.max(...vals) : 0;
-              };
-              const icbm = maxOf(["ICBM"]);
-              const slbm = maxOf(["SLBM"]);
-              const bomber = maxOf(["Bomber"]);
-              const theater = maxOf(["IRBM/MRBM", "Cruise", "Tactical"]);
-              const rings: {
-                rKm: number;
-                color: string;
-                label: string;
-                width: number;
-                dash?: string;
-              }[] = [];
-              if (icbm > 0)
-                rings.push({
-                  rKm: icbm,
-                  color: "#f472b6",
-                  label: `ICBM ${formatNum(icbm)} km`,
-                  width: focus ? 2.8 : 1.3,
-                });
-              if (slbm > 0 && (icbm <= 0 || Math.abs(slbm - icbm) > 350))
-                rings.push({
-                  rKm: slbm,
-                  color: "#c084fc",
-                  label: `SLBM ${formatNum(slbm)} km`,
-                  width: focus ? 2.4 : 1.15,
-                });
-              if (bomber > 0 && bomber < Math.max(icbm, slbm, 1) * 0.97)
-                rings.push({
-                  rKm: bomber,
-                  color: "#22d3ee",
-                  label: `Bomber ${formatNum(bomber)} km`,
-                  width: focus ? 2.0 : 1.0,
-                  dash: "7 4",
-                });
-              if (theater > 0 && theater < Math.max(icbm, slbm, bomber || 0, 1))
-                rings.push({
-                  rKm: theater,
-                  color: "#fbbf24",
-                  label: `Theater ${formatNum(theater)} km`,
-                  width: focus ? 1.85 : 0.95,
-                  dash: "3 3",
-                });
-              rings.sort((a, b) => b.rKm - a.rKm);
+              const rings = bandsForNation(n, focus);
               const origin = project(n.lat, n.lon);
               return rings.map((ring, idx) => {
-                const path = rangeRingPath(n.lat, n.lon, ring.rKm, focus ? 128 : 80);
-                // Prefer label bearings that stay mid-map when possible
-                const bearings = [25, 70, 110, 200, 250, 300];
-                let labelPt = rangeRingLabelPoint(n.lat, n.lon, ring.rKm, bearings[idx % bearings.length]!);
-                // clamp into view with padding
+                const path = rangeRingPath(n.lat, n.lon, ring.rKm, focus ? 144 : 96);
+                if (!path) return null;
+                const bearings = [30, 75, 120, 210, 255, 300];
+                let labelPt = rangeRingLabelPoint(
+                  n.lat,
+                  n.lon,
+                  ring.rKm,
+                  bearings[idx % bearings.length]!,
+                );
                 labelPt = {
-                  x: Math.min(MAP_W - 130, Math.max(8, labelPt.x)),
-                  y: Math.min(MAP_H - 16, Math.max(28, labelPt.y)),
+                  x: Math.min(MAP_W - 140, Math.max(10, labelPt.x)),
+                  y: Math.min(MAP_H - 18, Math.max(30, labelPt.y)),
                 };
-                const op = focus ? 1 : 0.32;
-                const showLabel = focus && idx === 0; // only outermost on-map label
+                const op = focus ? 1 : 0.28;
+                const showLabel = focus && idx === 0;
                 return (
                   <g
-                    key={`${n.id}-${ring.label}`}
+                    key={`${n.id}-${ring.id}`}
                     pointerEvents="none"
                     opacity={op}
                     filter={focus ? "url(#rangeGlow)" : undefined}
@@ -605,10 +563,10 @@ export function WorldMap({
                       d={path}
                       fill="none"
                       stroke={ring.color}
-                      strokeWidth={focus ? 18 : 11}
+                      strokeWidth={focus ? 20 : 12}
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      opacity={focus ? 0.2 : 0.08}
+                      opacity={focus ? 0.18 : 0.07}
                     />
                     <path
                       d={path}
@@ -618,30 +576,30 @@ export function WorldMap({
                       strokeDasharray={ring.dash}
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      opacity={focus ? 1 : 0.4}
+                      opacity={focus ? 1 : 0.42}
                     />
                     {focus && idx === 0 && (
                       <circle
                         cx={origin.x}
                         cy={origin.y}
-                        r={6.5}
+                        r={7}
                         fill={ring.color}
-                        fillOpacity={0.35}
+                        fillOpacity={0.4}
                         stroke="#f8fafc"
-                        strokeWidth={1.2}
+                        strokeWidth={1.35}
                       />
                     )}
                     {showLabel && (
                       <g transform={`translate(${labelPt.x},${labelPt.y})`}>
                         <rect
-                          x={-3}
-                          y={-10}
+                          x={-4}
+                          y={-11}
                           rx={5}
-                          height={14}
-                          width={Math.min(128, ring.label.length * 5.4 + 14)}
-                          fill="#0b1220f0"
+                          height={15}
+                          width={Math.min(140, n.short.length * 6 + ring.label.length * 5.1 + 16)}
+                          fill="#0b1220f5"
                           stroke={ring.color}
-                          strokeWidth={1.1}
+                          strokeWidth={1.2}
                         />
                         <text
                           x={4}
@@ -815,28 +773,24 @@ export function WorldMap({
               {(() => {
                 const n = nations.find((x) => x.id === selectedId);
                 if (!n) return null;
-                const maxOf = (types: string[]) => {
-                  const vals = n.systems
-                    .filter((s) => types.includes(s.type) && s.rangeKm > 0)
-                    .map((s) => s.rangeKm);
-                  return vals.length ? Math.max(...vals) : 0;
-                };
-                const rows = [
-                  ["ICBM", maxOf(["ICBM"]), "#f472b6"],
-                  ["SLBM", maxOf(["SLBM"]), "#c084fc"],
-                  ["Bomber", maxOf(["Bomber"]), "#22d3ee"],
-                  ["Theater", maxOf(["IRBM/MRBM", "Cruise", "Tactical"]), "#fbbf24"],
-                ] as const;
-                return rows
-                  .filter(([, km]) => km > 0)
-                  .map(([lab, km, col]) => (
-                    <li key={lab} className="flex justify-between gap-2 tabular">
-                      <span style={{ color: col }}>{lab}</span>
-                      <span className="text-slate-300">{formatNum(km)} km</span>
-                    </li>
-                  ));
+                const bands = bandsForNation(n, true);
+                if (!bands.length) {
+                  return (
+                    <li className="text-slate-500">No open range figures for this state.</li>
+                  );
+                }
+                return (
+                  <>
+                    {bands.map((b) => (
+                      <li key={b.id} className="flex justify-between gap-2 tabular">
+                        <span style={{ color: b.color }}>{b.shortLabel}</span>
+                        <span className="text-slate-300">{formatNum(b.rKm)} km</span>
+                      </li>
+                    ))}
+                    <li className="pt-0.5 text-[9px] text-slate-500">{n.short} selected</li>
+                  </>
+                );
               })()}
-              <li className="pt-0.5 text-[9px] text-slate-500">{nations.find((x) => x.id === selectedId)?.short} selected</li>
             </ul>
           ) : (
             <p className="mt-1 font-semibold text-amber-300">Click a nuclear state for labeled rings.</p>

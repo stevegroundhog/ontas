@@ -107,20 +107,24 @@ export function rangeRingPath(
   lat: number,
   lon: number,
   rangeKm: number,
-  steps = 96,
+  steps = 128,
 ): string {
   if (rangeKm <= 0) return "";
+  // Cap extreme ranges that wrap the globe (still show near-full coverage)
+  const km = Math.min(rangeKm, EARTH_KM * Math.PI * 0.98);
   const pts: { x: number; y: number }[] = [];
   for (let i = 0; i <= steps; i++) {
     const brng = (i / steps) * 360;
-    const d = destinationPoint(lat, lon, brng, rangeKm);
-    pts.push(project(d.lat, d.lon));
+    const d = destinationPoint(lat, lon, brng, km);
+    const clat = Math.max(-85, Math.min(85, d.lat));
+    pts.push(project(clat, d.lon));
   }
   let d = "";
   let started = false;
   let prevX: number | null = null;
   for (const pt of pts) {
-    if (prevX != null && Math.abs(pt.x - prevX) > MAP_W * 0.45) {
+    // Break stroke when equirectangular projection jumps across the date line
+    if (prevX != null && Math.abs(pt.x - prevX) > MAP_W * 0.4) {
       started = false;
     }
     if (!started) {

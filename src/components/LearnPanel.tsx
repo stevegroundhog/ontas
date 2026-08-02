@@ -5,11 +5,16 @@ type SectionId =
   | "nav"
   | "geo"
   | "nuclear"
-  | "yields"
   | "defcon"
   | "delivery"
   | "map"
+  | "ranges"
   | "conflicts"
+  | "intel"
+  | "method"
+  | "alerts"
+  | "history"
+  | "yields"
   | "terror"
   | "rad"
   | "survive"
@@ -24,123 +29,108 @@ const SECTIONS: {
   {
     id: "start",
     title: "Start here — what is ONTAS?",
-    blurb: "A plain-language educational dashboard — not a warning siren.",
+    blurb: "Educational open desk — not a siren, not official DEFCON.",
     body: [
       {
-        p: "ONTAS (Open Nuclear Threat Awareness System) is a free, open-source classroom for public nuclear and conflict information. It combines a live world map with desks for arsenals, wars, radiation education, historical terrorism cases, treaties, and city readiness — using only public, unclassified sources.",
+        p: "ONTAS (Open Nuclear Threat Awareness System) is a free, open-source dashboard for learning about nuclear forces, conflicts, and public sensors. It fuses a live world map with desks for arsenals, wars, radiation literacy, historical terrorism cases, treaties, crisis history, and city readiness — using only public, unclassified sources.",
       },
       {
-        p: "It is not a government warning system. It cannot tell you if a missile has launched. If there is a real emergency in the United States, you will hear from FEMA, Wireless Emergency Alerts on your phone, sirens, or TV/radio — not from this app.",
+        p: "It is not a government warning system. It cannot tell you if a missile has launched. In the United States, real emergencies use FEMA IPAWS, the Emergency Alert System (TV/radio), Wireless Emergency Alerts on your phone, and local authorities — not this app. Elsewhere, follow your national civil-protection channels.",
       },
       {
-        p: "Think of it as a globe, a news desk, and a study guide in one place: useful for understanding risk, never for life-or-death decisions.",
+        p: "Think of ONTAS as a globe + news mesh + study guide: useful for understanding risk, never for life-or-death decisions.",
       },
     ],
   },
   {
     id: "nav",
     title: "How to get around",
-    blurb: "Menu button, jump search, and when the map appears.",
+    blurb: "Quick find, deep links, Share link, Jump search.",
     body: [
       {
-        h: "Quick find + deep links",
-        p: "Every desk is under Quick find (Situational / Arsenals / Strategic / Protect). Share link copies ?desk=…&nation=… URLs. Methodology explains every number; Alert literacy covers IPAWS/EAS/WEA; Crisis timeline covers close calls. Header: Live map, Beginner guide, Essay.",
+        h: "Live map home",
+        p: "The header Live map button always returns home. On Live map you see DEFCON (unofficial), the New START / arms-control clock, live source health, space weather (NOAA Kp), a headline tick, and Quick find.",
+      },
+      {
+        h: "Quick find",
+        p: "Every desk is listed under Situational, Arsenals, Strategic, and Protect. There is no permanent sidebar clutter — open what you need from Quick find (full on home, compact when another desk is open).",
+      },
+      {
+        h: "Deep links & Share link",
+        p: "URLs like ?desk=intel&nation=ru&compare=us,ru&conflict=… are shareable. Use Share link in the header to copy the current desk with an as-of timestamp. Bookmark Methodology, Alerts, or a compare pair.",
       },
       {
         h: "Jump search",
-        p: "Type in the top “Jump to…” box (or the mobile search field) to open any desk by name — e.g. yields, terror, treaties, survive.",
+        p: "Type in Jump to… (desktop header or mobile field) to open any desk by name — yields, terror, treaties, alerts, history, survive.",
       },
       {
         h: "Map layers",
-        p: "On map-linked desks you can toggle Conflicts, SSBN estimates, and AIS surface tracks. Click a nuclear country → Countries desk. Click a conflict marker → Conflicts desk.",
+        p: "Toggle Conflicts, SSBN estimates, AIS Baltic, Seismic, and Range bands. On phones, open Layers first. Click a nuclear country to select it (Country cards if you were already on that desk). Click a conflict marker for the Conflicts desk.",
       },
       {
-        h: "Phone and desktop",
-        p: "Same Menu drawer on every screen size. One desk at a time keeps the view uncluttered.",
+        h: "First visit",
+        p: "A short “This is not a siren” screen appears once per session — then Live map. Beginner guide and Methodology are always one click away.",
       },
     ],
   },
   {
     id: "geo",
     title: "Geopolitics in 60 seconds",
-    blurb: "How countries compete, ally, and sometimes fight.",
+    blurb: "How power, geography, and alliances interact.",
     body: [
       {
-        h: "What “geopolitics” means",
-        p: "Geopolitics is how geography, power, trade, and military force shape relations between countries. Mountains, oceans, oil, shipping lanes, and borders matter because they affect what states can protect or threaten.",
+        h: "What geopolitics means",
+        p: "How geography, power, trade, and military force shape relations between countries. Borders, resources, and shipping lanes matter because they affect what states can protect or threaten.",
       },
       {
         h: "Power is not only tanks",
-        p: "Countries also use alliances (like NATO), trade, technology, sanctions, and information. Nuclear weapons are one extreme form of military power: mainly for deterrence — discouraging attack by making the cost unbearable — not for everyday fighting.",
+        p: "Alliances (e.g. NATO), trade, technology, sanctions, and information all count. Nuclear weapons are extreme military power used mainly for deterrence — discouraging attack by making the cost unbearable — not for everyday fighting.",
       },
       {
-        h: "Why conflicts appear on this map",
-        p: "Wars and crises change risk for ordinary people and can raise military readiness worldwide. Tracking them helps explain why news about missiles or DEFCON estimates sometimes spikes — without treating every war as a countdown to nuclear use.",
+        h: "Why conflicts are on the map",
+        p: "Wars change risk for ordinary people and can raise readiness worldwide. Tracking them explains news spikes without treating every war as a countdown to nuclear use.",
       },
     ],
   },
   {
     id: "nuclear",
     title: "Nuclear weapons — basics",
-    blurb: "What they are, who has them, and why numbers matter.",
+    blurb: "Who has them, stockpile vs deployed, deterrence.",
     body: [
       {
         h: "What a nuclear weapon is",
-        p: "A nuclear weapon releases energy from splitting atoms (fission) or combining them (fusion). Yield is often measured in kilotons (kt) or megatons (Mt) of TNT equivalent. Even a “small” nuclear explosion is vastly more destructive than ordinary bombs and creates deadly radiation and fallout.",
+        p: "Energy from splitting atoms (fission) or combining them (fusion). Yield is often in kilotons (kt) or megatons (Mt) of TNT equivalent. Even a “small” nuclear explosion is vastly more destructive than ordinary bombs and creates radiation and fallout.",
       },
       {
         h: "Who has them",
-        p: "Nine states are widely assessed to possess nuclear weapons: the United States, Russia, China, France, the United Kingdom, India, Pakistan, Israel (undeclared but widely assessed), and North Korea. Others may host allied weapons or pursue related technology under scrutiny.",
+        p: "Nine states are widely assessed to possess nuclear weapons: United States, Russia, China, France, United Kingdom, India, Pakistan, Israel (undeclared but widely assessed), and North Korea. Others may host allied weapons or pursue related technology under scrutiny.",
       },
       {
         h: "Stockpile vs deployed",
-        p: "“Total inventory” includes warheads in storage. “Deployed” means ready or on delivery systems. Open estimates (FAS, SIPRI, Arms Control Association-class research) are educated counts — not secret official tallies.",
+        p: "Total inventory includes storage. Deployed means on or ready for delivery systems. ONTAS uses open estimates (FAS / SIPRI / ACA-class) with a vintage stamp — not secret official tallies. See Methodology for how numbers are made.",
       },
       {
-        h: "Deterrence, not a video game",
-        p: "Nuclear strategy is about preventing use. Accidents, miscalculation, and escalation are the main public fears. That is why treaties, hotlines, and clear command systems matter. See each country’s Strategy field and the Compare desk.",
-      },
-    ],
-  },
-  {
-    id: "yields",
-    title: "Yields (kt/Mt) & aircraft",
-    blurb: "Open-estimate warhead power and nuclear-capable planes.",
-    body: [
-      {
-        h: "Kiloton and megaton",
-        p: "1 kiloton (kt) ≈ 1,000 tons of TNT. 1 megaton (Mt) = 1,000 kt. Modern deployed strategic warheads are often tens to a few hundred kilotons; some older or heavy designs are discussed in megaton ranges in open literature.",
-      },
-      {
-        h: "Yields & aircraft desk",
-        p: "Open Yields & aircraft in the sidebar for tables of representative warhead families (e.g. W76, W88, B61, Yars-class estimates) and dual-capable bombers/fighters (B-52, B-2, Tu-160, Rafale, F-35 DCA, H-6, and more). Ranges are open estimates with uncertainty — not official loadings.",
-      },
-      {
-        h: "Country cards",
-        p: "Selecting a nation also shows that country’s yield chips and aircraft list next to doctrine and delivery systems.",
+        h: "Civilian power ≠ weapons",
+        p: "Nuclear power plants produce electricity with low-enriched fuel. A reactor accident is not the same as a nuclear detonation. Alert literacy and Rad / CBRN explain the difference.",
       },
     ],
   },
   {
     id: "defcon",
     title: "DEFCON levels explained",
-    blurb: "What each number means — and why the real one is secret.",
+    blurb: "Official names — real level is classified.",
     body: [
       {
         h: "What DEFCON is",
-        p: "DEFCON stands for Defense Readiness Condition. It is a U.S. military alert scale from 5 (lowest readiness / peacetime baseline) to 1 (maximum readiness). Higher readiness means more forces prepared for combat — it does not by itself mean “nukes are launching.”",
+        p: "Defense Readiness Condition — a U.S. military scale from 5 (peacetime baseline) to 1 (maximum readiness). Higher readiness means more forces prepared for combat; it does not by itself mean “nukes are launching.”",
       },
       {
-        h: "The five levels (official names)",
-        p: "DEFCON 5 FADE OUT — normal peacetime. DEFCON 4 DOUBLE TAKE — increased intelligence watch and security. DEFCON 3 ROUND HOUSE — increase in force readiness above normal. DEFCON 2 FAST PACE — further increase; next step to max. DEFCON 1 COCKED PISTOL — maximum readiness.",
+        h: "The five levels",
+        p: "5 FADE OUT — normal peacetime. 4 DOUBLE TAKE — increased intelligence watch. 3 ROUND HOUSE — force readiness above normal. 2 FAST PACE — further increase. 1 COCKED PISTOL — maximum readiness.",
       },
       {
-        h: "Important: the real level is classified",
-        p: "The U.S. government does not publish the current DEFCON in real time. Websites (including the OSINT estimate shown here) are educated guesses from open signals. They can be wrong. This app always labels DEFCON as unofficial.",
-      },
-      {
-        h: "How to read our badge",
-        p: "We combine a public OSINT estimate with open sensors (news pressure, quakes near test sites). A yellow DEFCON 3 means “elevated public concern in open sources,” not an official order. Never evacuate based on this display alone.",
+        h: "The real level is classified",
+        p: "The U.S. government does not publish live DEFCON. ONTAS shows an unofficial OSINT estimate, always labeled. Never evacuate based on this badge alone.",
       },
     ],
   },
@@ -150,146 +140,202 @@ const SECTIONS: {
     blurb: "How nuclear weapons can be delivered.",
     body: [
       {
-        h: "The nuclear triad",
-        p: "Many nuclear powers keep three legs: land-based missiles, sea-based missiles on submarines, and aircraft. Spreading forces makes a complete surprise attack harder.",
+        h: "The triad",
+        p: "Many nuclear powers keep land missiles, sea-based missiles on submarines, and aircraft so no single strike can destroy the whole force.",
       },
       {
-        h: "ICBM",
-        p: "Intercontinental Ballistic Missile — a long-range land-based rocket that flies into space on an arc and re-enters at high speed. Flight times between major powers are often measured in tens of minutes.",
-      },
-      {
-        h: "SLBM & SSBN",
-        p: "Submarine-Launched Ballistic Missiles ride on ballistic-missile submarines (SSBNs). Submerged boats are hard to find; tracks on this map are educational estimates, not live GPS of secret patrols. Real SSBNs do not broadcast AIS while hidden.",
+        h: "ICBM & SLBM",
+        p: "Intercontinental and submarine-launched ballistic missiles. Flight times between major powers are often tens of minutes. Submerged SSBNs do not broadcast tracks — map chevrons are educational estimates only.",
       },
       {
         h: "Bombers & dual-capable fighters",
-        p: "Aircraft can carry nuclear bombs or long-range cruise missiles. They are slower than ICBMs but flexible. See Yields & aircraft for named types.",
+        p: "Aircraft can carry bombs or cruise missiles. See Warheads & yields and Ships, subs & aircraft for open catalogs.",
       },
     ],
   },
   {
     id: "map",
     title: "How to read the live map",
-    blurb: "Colors, markers, and layers without the jargon.",
+    blurb: "Layers, markers, clocks, and honesty labels.",
     body: [
       {
-        h: "Countries",
-        p: "Nuclear-armed states are tinted. Click one to open its force card (warheads, systems, strategy, yields, aircraft).",
+        h: "Always on Live map",
+        p: "Unofficial DEFCON badge, arms-control clock (New START era), live unclassified source probes, NOAA space-weather Kp, and open news tick.",
       },
       {
-        h: "Rose / red conflict markers",
-        p: "Major wars and armed conflicts. Click a marker or use Conflicts for a neutral fact sheet, open fatality ranges, and live reports.",
+        h: "Countries & conflicts",
+        p: "Nuclear-armed states are tinted. Rose conflict markers open neutral fact sheets with open fatality ranges.",
       },
       {
-        h: "SSBN chevrons",
-        p: "Estimated patrol or in-port positions for ballistic-missile submarines. Educational modeling only.",
+        h: "SSBN, AIS, seismic",
+        p: "SSBN = estimates. AIS = open regional surface tracks (Baltic feed). Seismic = USGS; watch flags near nuclear-related zones are not proof of a test.",
       },
       {
-        h: "AIS dots",
-        p: "Live surface ships where open maritime data exists (strongest in some coastal feeds such as the Baltic). Not a global military tracker.",
+        h: "Range bands",
+        p: "See the next chapter. Toggle Range bands, select a nuclear state, read ICBM/SLBM/bomber/theater open max ranges as great-circle rings.",
+      },
+    ],
+  },
+  {
+    id: "ranges",
+    title: "Range bands (illustrative)",
+    blurb: "Great-circle open max ranges — not targeting.",
+    body: [
+      {
+        h: "What they show",
+        p: "For the selected nuclear-armed state, ONTAS draws great-circle rings from the capital/C2 pin using the longest open-estimate range for each leg: ICBM (pink), SLBM (violet), bomber (cyan), theater systems (amber).",
       },
       {
-        h: "Quake dots",
-        p: "Earthquakes from USGS. Ones near known nuclear test areas are flagged for watch — most quakes are natural geology.",
+        h: "What they are not",
+        p: "Not aim points, not MIRV footprints, not flight-time products, not classified reliability. Long ranges wrap the map oddly in flat projection — that is geometry, not a threat score.",
+      },
+      {
+        h: "How to use them",
+        p: "Turn on Range bands under Map layers. Pick a nation (defaults to US if none). The callout lists km per leg. Compare two countries on the Compare desk for doctrine side-by-side.",
       },
     ],
   },
   {
     id: "conflicts",
-    title: "Wars & conflicts — reading neutrally",
-    blurb: "Fact sheets, death-toll ranges, and live reports without propaganda.",
+    title: "Wars, death tolls & humanitarian wires",
+    blurb: "Neutral fact sheets + open feeds.",
     body: [
       {
-        p: "Conflict cards list parties by name, intensity, and open casualty ranges with sources. Language is deliberately dry: who is fighting, where, since when — not who is “right.” Fatality figures are contested open estimates (e.g. UN/OHCHR-class reporting), shown as ranges.",
+        p: "Conflict cards list parties, intensity, and open casualty ranges with sources — dry language, not scoreboard propaganda. Live reports come from public RSS. A humanitarian wire (ReliefWeb / UN-class public feeds) sits above the list for context.",
       },
       {
-        p: "Live reports come from public RSS feeds. Headlines can be imperfect or biased; always open the original article. We do not invent battlefield scores.",
+        p: "Most wars stay conventional. Nuclear risk rises mainly when nuclear-armed states are direct parties or crises spin out of control.",
+      },
+    ],
+  },
+  {
+    id: "intel",
+    title: "Live intel, news & space weather",
+    blurb: "USGS, agency wires, news mesh, NOAA Kp.",
+    body: [
+      {
+        h: "Live intel desk",
+        p: "Fuses multi-region nuclear news, USGS seismic watch, DoD / IAEA / UN / BBC public wires, and source health. Summaries are open headlines — not confirmed intelligence judgments.",
       },
       {
-        p: "A conflict on the list does not mean nuclear war is imminent. Most wars stay conventional. Nuclear risk rises mainly when nuclear-armed states are direct parties or when crises spin out of control.",
+        h: "News desk",
+        p: "Filterable nuclear-related headline mesh. Severity chips are keyword heuristics for sorting only.",
+      },
+      {
+        h: "Space weather",
+        p: "NOAA SWPC planetary K-index on Live map. Solar storms affect radio/GPS — they are not nuclear fallout.",
+      },
+    ],
+  },
+  {
+    id: "method",
+    title: "Methodology — how numbers are made",
+    blurb: "Trust infrastructure for every desk.",
+    body: [
+      {
+        p: "Open Methodology under Protect (or the header button). It explains inventories, yields, unofficial DEFCON, fatality bands, SSBN estimates, AIS, seismic, news severity, range bands, and space weather — plus an explicit list of what ONTAS will never show (official DEFCON, real SSBN tracks, targeting data, etc.).",
+      },
+      {
+        p: "If a number has no public pedigree, it should not look authoritative. When in doubt, read Methodology and the estimate vintage on force cards.",
+      },
+    ],
+  },
+  {
+    id: "alerts",
+    title: "Alert literacy (IPAWS / EAS / WEA)",
+    blurb: "How real public warnings work.",
+    body: [
+      {
+        p: "Alert literacy explains IPAWS, the Emergency Alert System, Wireless Emergency Alerts, and generic national civil-protection systems. Prefer official channels, check cancellations after false alarms (e.g. Hawaii 2018), and treat screenshots as weak evidence.",
+      },
+      {
+        p: "ONTAS is not connected to IPAWS. If your phone screams a government alert, that outranks any dashboard.",
+      },
+    ],
+  },
+  {
+    id: "history",
+    title: "Crisis timeline",
+    blurb: "What was known then vs later.",
+    body: [
+      {
+        p: "Crisis timeline covers close calls and signaling episodes (Cuban Missile Crisis, Able Archer, 1983 false alarm, Norwegian rocket, Kargil, DPRK tests, Hawaii false alert, Ukraine-war nuclear rhetoric, New START expiry) with known-then / known-later / lesson blocks — education, not nostalgia for danger.",
+      },
+    ],
+  },
+  {
+    id: "yields",
+    title: "Warheads, yields & aircraft",
+    blurb: "kt/Mt open estimates + dual-capable planes.",
+    body: [
+      {
+        h: "Kiloton and megaton",
+        p: "1 kt ≈ 1,000 tons of TNT. 1 Mt = 1,000 kt. Modern strategic warheads are often modeled in tens to a few hundred kt; some heavy or older designs appear in megaton ranges in open literature.",
+      },
+      {
+        h: "Warheads & yields desk",
+        p: "Stockpile ranking table plus open kt/Mt catalog. Ships, subs & aircraft combines maritime units with dual-capable aircraft lists. Country cards and Compare add doctrine and strategy notes.",
+      },
+      {
+        h: "Export",
+        p: "Compare can Copy card / Export .txt. Survivability kits can be copied or downloaded the same way.",
       },
     ],
   },
   {
     id: "terror",
-    title: "Terrorism: nuclear threats & attempts",
-    blurb: "Historical public record — rhetoric vs real plots.",
+    title: "Terror history (public record)",
+    blurb: "Threats and attempts — no known nuclear weapons.",
     body: [
       {
-        h: "Bottom line first",
-        p: "No terrorist group is known to possess nuclear weapons. Confirmed nuclear arsenals remain state-held. Open security work focuses on materials security, radiological dispersal devices (RDDs), and facility protection.",
+        h: "Bottom line",
+        p: "No terrorist group is known to possess nuclear weapons. State arsenals dominate strategic nuclear risk. Open cases emphasize materials security, RDDs, and facility protection.",
       },
       {
-        h: "What the Terror history desk lists",
-        p: "Widely cited open cases: al-Qaeda interest and disrupted plots, Aum Shinrikyo’s WMD ambition (chemical attack succeeded; nuclear did not), Chechen-related radiological episodes, ISIS-era rhetoric, smuggling networks tracked in IAEA-class public data, domestic extremist cases, and hoaxes. Filter by type or “beyond rhetoric.”",
-      },
-      {
-        h: "What it is not",
-        p: "Not a tip line, not a how-to, not classified intelligence. Report credible threats to local authorities.",
+        p: "The desk lists widely cited public cases and hoaxes for education — not a tip line or how-to. Report real threats to authorities.",
       },
     ],
   },
   {
     id: "rad",
-    title: "Radiation, dirty bombs & explosion steps",
-    blurb: "Civil-defense education from the Rad / CBRN desk.",
+    title: "Rad / CBRN education",
+    blurb: "Radiation types, decon themes, detonation sequence.",
     body: [
       {
-        h: "Threat categories",
-        p: "Open literature discusses improvised nuclear devices (extremely hard), RDDs (“dirty bombs”), hidden exposure devices, facility sabotage, materials theft, and hoaxes — each with different effects and likelihood notes.",
-      },
-      {
-        h: "Types of radiation",
-        p: "Alpha is stopped by skin but dangerous if inhaled. Beta can burn skin. Gamma penetrates and is the main external fallout hazard. Neutrons matter mainly in the prompt pulse of a detonation. Decontamination is mostly about removing radioactive dust — you cannot wash off pure gamma rays.",
-      },
-      {
-        h: "Stay time",
-        p: "Stay time is how long you can remain at a measured dose rate before hitting a dose limit. Fallout dose rates drop over time (educational 7/10 rule). Officials use real instruments; this app cannot set your stay time.",
-      },
-      {
-        h: "Nuclear detonation sequence (public themes)",
-        p: "Flash → prompt radiation → blast → fires → fallout → medical/social disruption → decay and recovery decisions. The Rad / CBRN desk walks each step with damage, health, and protective-action notes.",
+        p: "Threat categories (IND, RDD, RED, sabotage, theft, hoax), alpha/beta/gamma/neutron themes, stay-time and educational 7/10 fallout decay, and a step-by-step nuclear detonation sequence with damage and health implications — civil-defense literacy, not operational guidance.",
       },
     ],
   },
   {
     id: "survive",
     title: "Survivability kits",
-    blurb: "Climate-aware readiness for any city or village — not medical advice.",
+    blurb: "Any city or village — climate-aware, not medical advice.",
     body: [
       {
-        p: "Search any city or town for a starter list: water, food, radio, medicine, shelter-in-place ideas. The list tightens to climate (arctic, cold, temperate, hot, tropical, arid) and notes distance to large strategic sites on our open map.",
+        p: "Search any place for a starter list: water, food, radio, medicine, shelter-in-place ideas. Lists tighten to climate (arctic through arid) and note distance to large strategic sites on the open map. Copy kit / Export .txt for offline reading.",
       },
       {
         h: "Shelter vs evacuate",
-        p: "For radioactive fallout, the usual public advice is go in, stay in, tune in — use thick walls and distance from windows unless officials order evacuation. Follow your country’s civil-defense instructions first.",
-      },
-      {
-        h: "Potassium iodide (KI)",
-        p: "Only helps protect the thyroid from radioactive iodine, and only if public health officials say to take it. It is not an anti-radiation pill for everything.",
+        p: "Public fallout themes often stress go in, stay in, tune in unless officials order evacuation. Follow your country’s civil-defense instructions first. KI only protects the thyroid from radioactive iodine when public health says so.",
       },
     ],
   },
   {
     id: "limits",
-    title: "Limits, trust, and good habits",
-    blurb: "How to stay informed without panic.",
+    title: "Limits, trust & good habits",
+    blurb: "Stay informed without panic.",
     body: [
       {
         h: "What we never claim",
-        p: "We do not claim access to classified DEFCON, real-time missile warning, or secret submarine tracks. Yields, fatality ranges, and terror cases are open estimates or historical summaries. Anything labeled OSINT or estimate can be wrong.",
+        p: "No classified DEFCON, no real-time missile warning, no secret SSBN tracks, no targeting manuals. Yields, fatality ranges, and terror cases are open estimates or historical summaries.",
       },
       {
         h: "Also on the app",
-        p: "Launches calendar (public tests/space-style notes), Treaties timeline, Compare two countries, Strategic climate brief, Essay page, and Live intel source health.",
+        p: "Launches calendar, Treaties timeline, Scenarios, Climate brief, Essay page (/article), PWA install shell, GitHub source.",
       },
       {
         h: "Healthy habits",
-        p: "Use multiple reputable sources. Prefer primary agencies (UN, IAEA, national seismic services, civil defense). Be wary of viral maps with no sources.",
-      },
-      {
-        h: "If you feel overwhelmed",
-        p: "Global news can be heavy. Limit doomscrolling, talk to people you trust, and remember that understanding risk is different from living in constant alarm.",
+        p: "Use multiple reputable sources. Prefer primary agencies. Be wary of viral maps with no methodology. If news feels heavy, limit doomscrolling — understanding risk is not living in constant alarm.",
       },
     ],
   },
@@ -316,8 +362,8 @@ export function LearnPanel() {
           Geopolitics, nuclear risk & how to use this app
         </h2>
         <p className="mt-1 max-w-3xl text-sm leading-relaxed text-muted">
-          No prior knowledge needed. Short chapters in any order — written for curious readers, not
-          specialists. Updated for the full ONTAS feature set.
+          No prior knowledge needed. Chapters match the current ONTAS build: Quick find, deep links,
+          methodology, alerts, crisis timeline, range bands, and honest limits.
         </p>
       </div>
 
@@ -388,8 +434,8 @@ export function LearnPanel() {
               {s.id === "start" && (
                 <div className="mt-6 rounded-xl border border-border bg-black/25 p-3 text-xs leading-relaxed text-muted">
                   <strong className="text-bright">Suggested path:</strong> How to get around → Nuclear
-                  basics → DEFCON → Methodology → Alert literacy → Crisis timeline → Yields →
-                  Conflicts → Survivability → Limits. Use Quick find or Share link deep URLs.
+                  basics → DEFCON → Map & range bands → Methodology → Alert literacy → Crisis timeline
+                  → Conflicts → Warheads → Survivability → Limits. Use Quick find or Share link.
                 </div>
               )}
 
@@ -401,7 +447,7 @@ export function LearnPanel() {
                     className={`soft-btn ${open === x.id ? "active" : ""}`}
                     onClick={() => setOpen(x.id)}
                   >
-                    {x.title.split("—")[0]!.trim().slice(0, 22)}
+                    {x.title.split("—")[0]!.trim().slice(0, 24)}
                   </button>
                 ))}
               </div>

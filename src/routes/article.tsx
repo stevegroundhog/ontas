@@ -10,7 +10,7 @@ export const Route = createFileRoute("/article")({
       {
         name: "description",
         content:
-          "Updated essay on ONTAS: public nuclear data, DEFCON myths, yields & aircraft, terror history, radiation education, and honest limits. Not an official warning system.",
+          "Current ONTAS essay: public nuclear data, deep links, range bands, methodology, alert literacy, crisis timeline, yields, and honest limits. Not an official warning system.",
       },
       {
         property: "og:title",
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/article")({
       {
         property: "og:description",
         content:
-          "Open educational map for arsenals, conflicts, CBRN literacy, and terror history — without fake official DEFCON.",
+          "Open educational nuclear desk — Quick find, range bands, methodology, IPAWS literacy — without fake official DEFCON.",
       },
       { property: "og:type", content: "article" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -58,19 +58,19 @@ function ArticlePage() {
 
       <article className="mx-auto max-w-3xl px-4 py-10 sm:py-14">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-sky-400">
-          Essay · Education · Open source · Updated 2026
+          Essay · Education · Open source · Updated August 2026
         </p>
         <h1 className="mt-3 text-3xl font-bold leading-tight text-bright sm:text-4xl">
           What public data can (and can’t) tell you about nuclear risk
         </h1>
         <p className="mt-4 text-lg leading-relaxed text-muted">
-          An updated guide to ONTAS — open map, arsenals, conflicts, radiation education, and honest
-          limits.
+          A guide to ONTAS as it exists today — open map, arsenals, literacy desks, range bands, and
+          honest limits.
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-2 text-xs text-muted">
           <span className="chip">ONTAS</span>
-          <span className="chip">~14 min read</span>
+          <span className="chip">~12 min read</span>
           <span className="chip">Educational only</span>
           <span className="chip" style={{ borderColor: "#fbbf24", color: "#fcd34d" }}>
             Not an official warning system
@@ -99,12 +99,15 @@ function ArticlePage() {
         </div>
 
         <nav className="crt-panel mt-6 px-4 py-3 text-sm">
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-muted">On this page</div>
+          <div className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+            On this page
+          </div>
           <ul className="mt-2 grid gap-1.5 text-sky-300 sm:grid-cols-2">
             {[
               ["#problem", "The tracker problem"],
               ["#public", "What is public"],
               ["#desks", "What’s in ONTAS"],
+              ["#ranges", "Range bands"],
               ["#terror", "Terrorism & public history"],
               ["#yields", "Yields (kt / Mt)"],
               ["#defcon", "DEFCON myths"],
@@ -143,10 +146,10 @@ function ArticlePage() {
             about what you <strong className="text-bright">cannot</strong>.
           </p>
           <p>
-            This essay matches the <strong className="text-bright">current app</strong>: sidebar
-            navigation, live map, force cards, warhead yields (kt/Mt) and nuclear-capable aircraft,
-            terror history, Rad / CBRN education, conflicts with open fatality ranges, launches,
-            treaties, compare, and climate-aware survivability search.
+            This essay matches the <strong className="text-bright">current product</strong>: Quick
+            find navigation, shareable deep links, Live map with arms-control clock and range bands,
+            Methodology, Alert literacy, Crisis timeline, humanitarian conflict wires, warheads and
+            aircraft, terror history, Rad/CBRN, climate-aware survivability exports, and a PWA shell.
           </p>
 
           <h2 id="problem" className="scroll-mt-20 pt-4 text-2xl font-bold text-bright">
@@ -155,8 +158,7 @@ function ArticlePage() {
           <p>A lot of tools blur three different things into one scary interface:</p>
           <ol className="list-decimal space-y-2 pl-6">
             <li>
-              <strong className="text-bright">News</strong> — messy, sometimes biased, incomplete in
-              the first hour.
+              <strong className="text-bright">News</strong> — messy, incomplete in the first hour.
             </li>
             <li>
               <strong className="text-bright">Military readiness language</strong> — DEFCON, postures,
@@ -171,6 +173,7 @@ function ArticlePage() {
             <li>A loud headline is not a launch.</li>
             <li>An open-source “DEFCON estimate” is not the classified U.S. readiness condition.</li>
             <li>A map is not a warning siren.</li>
+            <li>A range ring is not a targeting product.</li>
           </ul>
 
           <h2 id="public" className="scroll-mt-20 pt-4 text-2xl font-bold text-bright">
@@ -182,25 +185,29 @@ function ArticlePage() {
               <strong className="text-bright">Earthquakes</strong> from the USGS.
             </li>
             <li>
-              <strong className="text-bright">Public agency wires</strong> — DoD, IAEA, UN peace and
-              security reporting.
+              <strong className="text-bright">Public agency wires</strong> — DoD, IAEA, UN, BBC World.
             </li>
             <li>
-              <strong className="text-bright">Open news</strong> — multi-region RSS, including a
-              nuclear-security mesh for radiological topics.
+              <strong className="text-bright">Open news meshes</strong> and nuclear-security RSS.
             </li>
             <li>
-              <strong className="text-bright">Some ship tracking</strong> — open AIS in limited regions
-              (e.g. Finnish Baltic surface traffic).
+              <strong className="text-bright">Regional open AIS</strong> (e.g. Baltic surface traffic).
             </li>
             <li>
-              <strong className="text-bright">Open force estimates</strong>, representative{" "}
-              <strong className="text-bright">yields</strong>, and{" "}
-              <strong className="text-bright">dual-capable aircraft</strong> from research communities.
+              <strong className="text-bright">Open force estimates</strong>, yield bands, dual-capable
+              aircraft.
+            </li>
+            <li>
+              <strong className="text-bright">Humanitarian headlines</strong> (ReliefWeb / UN-class
+              public feeds).
+            </li>
+            <li>
+              <strong className="text-bright">NOAA space weather (Kp)</strong> — radio/GPS context, not
+              fallout.
             </li>
             <li>
               <strong className="text-bright">Historical open cases</strong> of non-state nuclear
-              interest, threats, or radiological plots.
+              interest or radiological plots.
             </li>
             <li>
               <strong className="text-bright">Independent OSINT readiness guesses</strong> — always
@@ -210,21 +217,25 @@ function ArticlePage() {
           <h3 className="text-xl font-semibold text-bright">Not public</h3>
           <ul className="list-disc space-y-2 pl-6">
             <li>Official U.S. DEFCON in real time.</li>
-            <li>True SSBN patrol positions (they are designed not to broadcast).</li>
-            <li>Exact official warhead loadings and yields on specific missiles.</li>
+            <li>True SSBN patrol positions.</li>
+            <li>Exact official warhead loadings on specific missiles.</li>
             <li>Classified command-and-control and national missile-warning networks.</li>
           </ul>
           <p>
             ONTAS is built on the first list. It{" "}
             <strong className="text-bright">labels</strong> the second as unavailable — on purpose.
+            Open the in-app <strong className="text-bright">Methodology</strong> desk for the full
+            provenance map.
           </p>
 
           <h2 id="desks" className="scroll-mt-20 pt-4 text-2xl font-bold text-bright">
             What’s in ONTAS today
           </h2>
           <p>
-            Use the <strong className="text-bright">left sidebar</strong> (Menu on mobile) or{" "}
-            <strong className="text-bright">Jump to…</strong> search.
+            Use <strong className="text-bright">Quick find</strong> on Live map,{" "}
+            <strong className="text-bright">Jump to…</strong>, or{" "}
+            <strong className="text-bright">Share link</strong> deep URLs (
+            <code className="text-sky-300">?desk=intel&nation=ru</code>).
           </p>
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[480px] text-left text-sm">
@@ -238,13 +249,13 @@ function ArticlePage() {
                 <tr>
                   <td className="px-3 py-2 font-semibold text-sky-300">Situational</td>
                   <td className="px-3 py-2 text-muted">
-                    Live map · Conflicts · Live intel · News desk
+                    Live map · Conflicts · Live intel · News · Crisis timeline
                   </td>
                 </tr>
                 <tr>
                   <td className="px-3 py-2 font-semibold text-sky-300">Arsenals</td>
                   <td className="px-3 py-2 text-muted">
-                    Countries · Yields & aircraft · Compare · Ships & subs
+                    Warheads & yields · Country cards · Compare · Ships, subs & aircraft
                   </td>
                 </tr>
                 <tr>
@@ -256,7 +267,8 @@ function ArticlePage() {
                 <tr>
                   <td className="px-3 py-2 font-semibold text-sky-300">Protect</td>
                   <td className="px-3 py-2 text-muted">
-                    Rad / CBRN · Terror history · Survivability · Beginner guide
+                    Rad / CBRN · Terror history · Survivability · Alert literacy · Methodology ·
+                    Beginner guide
                   </td>
                 </tr>
               </tbody>
@@ -264,67 +276,67 @@ function ArticlePage() {
           </div>
           <ul className="list-disc space-y-2 pl-6">
             <li>
-              <strong className="text-bright">Live map</strong> — nuclear states, conflicts, seismic
-              context, optional SSBN estimates and AIS, layer toggles.
+              <strong className="text-bright">Live map</strong> — nuclear states, conflicts, seismic,
+              SSBN estimates, Baltic AIS, range bands, arms-control clock, space weather, headline
+              tick.
             </li>
             <li>
-              <strong className="text-bright">Countries & compare</strong> — inventories, doctrine,
-              strategy notes, delivery systems, yield chips, aircraft.
+              <strong className="text-bright">Conflicts</strong> — open fatality ranges, live reports,
+              humanitarian wire.
             </li>
             <li>
-              <strong className="text-bright">Yields & aircraft</strong> — open kt/Mt bands and
-              dual-capable bombers/fighters.
+              <strong className="text-bright">Literacy</strong> — Methodology, Alert literacy
+              (IPAWS/EAS/WEA), Crisis timeline, Rad/CBRN, Terror history.
             </li>
             <li>
-              <strong className="text-bright">Conflicts</strong> — neutral fact sheets, open fatality
-              ranges with sources, live public reports.
-            </li>
-            <li>
-              <strong className="text-bright">Terror history</strong> — public threats and attempts;
-              no group confirmed to hold nuclear weapons.
-            </li>
-            <li>
-              <strong className="text-bright">Rad / CBRN</strong> — threat types, radiation & decon,
-              stay time, detonation sequence, security news.
-            </li>
-            <li>
-              <strong className="text-bright">Survivability</strong> — city search with climate-aware
-              kit ideas (not medical advice).
+              <strong className="text-bright">Survivability</strong> — any city, climate-aware kits,
+              copy/export.
             </li>
           </ul>
+
+          <h2 id="ranges" className="scroll-mt-20 pt-4 text-2xl font-bold text-bright">
+            Range bands (read this once)
+          </h2>
+          <p>
+            Range bands use published open maximum ranges for ICBM, SLBM, bomber, and theater
+            systems, drawn as <strong className="text-bright">great circles</strong> from a capital
+            / C2 pin.
+          </p>
+          <p>
+            They are <strong className="text-bright">illustrative</strong>. They are not aim points,
+            MIRV footprints, or flight-time tables. Flat-map projection makes long rings look warped
+            near the poles — that is geometry, not a doom score.
+          </p>
 
           <h2 id="terror" className="scroll-mt-20 pt-4 text-2xl font-bold text-bright">
             Nuclear terrorism — what public history supports
           </h2>
-          <p>Popular culture loves the stolen suitcase nuke. Open security literature is more careful:</p>
           <ul className="list-disc space-y-2 pl-6">
             <li>
               <strong className="text-bright">State arsenals</strong> dominate strategic nuclear risk.
             </li>
             <li>
               <strong className="text-bright">Non-state nuclear weapons</strong> have never been
-              confirmed. Barriers are high.
+              confirmed.
             </li>
             <li>
-              <strong className="text-bright">Radiological</strong> threats (dispersal of material,
-              stolen industrial sources) appear more often as planning cases than true nuclear bombs.
+              <strong className="text-bright">Radiological</strong> plots and materials security appear
+              more often than true nuclear bombs.
             </li>
             <li>
-              Many “threats” are <strong className="text-bright">rhetoric or hoaxes</strong>; some
-              cases go beyond rhetoric and still fail to produce a nuclear explosion.
+              Many “threats” are <strong className="text-bright">rhetoric or hoaxes</strong>.
             </li>
           </ul>
           <p>
-            ONTAS lists known public cases for education — not as a tip feed and not as instructions.
-            Report real threats to authorities.
+            ONTAS lists public cases for education — not as a tip feed and not as instructions. Report
+            real threats to authorities.
           </p>
 
           <h2 id="yields" className="scroll-mt-20 pt-4 text-2xl font-bold text-bright">
             Yields: why kt and Mt matter
           </h2>
           <p>
-            Yield is a rough measure of energy. Comparing Hiroshima (~15 kt class) to multi-hundred
-            kiloton strategic warheads is how students grasp scale. Open sources often give{" "}
+            Yield is a rough measure of energy. Open sources often give{" "}
             <strong className="text-bright">bands</strong>, not secrets. ONTAS shows ranges with
             uncertainty so the interface cannot be mistaken for a targeting manual.
           </p>
@@ -374,7 +386,7 @@ function ArticlePage() {
           <ul className="list-disc space-y-2 pl-6">
             <li>Not FEMA, not NORAD, not a missile-warning feed.</li>
             <li>Not medical advice; not a substitute for local civil defense.</li>
-            <li>Not a complete encyclopedia of every war, hoax, or warhead variant.</li>
+            <li>Not a complete encyclopedia of every warhead variant.</li>
             <li>Not propaganda for any side in a conflict.</li>
           </ul>
           <p>
@@ -402,10 +414,11 @@ function ArticlePage() {
           </ol>
           <p>
             Open the <strong className="text-bright">Beginner guide</strong> in the app for the short
-            version. Use <strong className="text-bright">Rad / CBRN</strong>,{" "}
-            <strong className="text-bright">Terror history</strong>, and{" "}
-            <strong className="text-bright">Yields & aircraft</strong> when you want depth without doom
-            theater.
+            version. Use <strong className="text-bright">Methodology</strong>,{" "}
+            <strong className="text-bright">Alert literacy</strong>,{" "}
+            <strong className="text-bright">Crisis timeline</strong>, and{" "}
+            <strong className="text-bright">Warheads & yields</strong> when you want depth without
+            doom theater.
           </p>
           <p className="text-muted">
             <em>ONTAS is education. Stay curious. Stay calm. Check primary sources.</em>
@@ -416,7 +429,7 @@ function ArticlePage() {
           <div>
             <div className="text-sm font-bold text-bright">Ready to explore?</div>
             <p className="text-xs text-muted">
-              Start with the Beginner guide, then open Yields, Terror history, or Conflicts.
+              Start with the Beginner guide, then Methodology, Range bands, or Conflicts.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
