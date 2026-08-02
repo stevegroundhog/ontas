@@ -16,7 +16,10 @@ export type AppSection =
   | "news"
   | "learn"
   | "scenarios"
-  | "climate";
+  | "climate"
+  | "method"
+  | "alerts"
+  | "history";
 
 export type NavItem = {
   id: AppSection;
@@ -32,6 +35,7 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "conflicts", label: "Conflicts", group: "Situational", hint: "Wars & death tolls" },
   { id: "intel", label: "Live intel", group: "Situational", hint: "Sensors & sources" },
   { id: "news", label: "News desk", group: "Situational", hint: "Nuclear news mesh" },
+  { id: "history", label: "Crisis timeline", group: "Situational", hint: "Close calls & lessons" },
   {
     id: "arsenal",
     label: "Warheads & yields",
@@ -58,6 +62,8 @@ export const NAV_ITEMS: NavItem[] = [
   { id: "rad", label: "Rad / CBRN", group: "Protect", hint: "Radiation & decon" },
   { id: "terror", label: "Terror history", group: "Protect", hint: "Threats & attempts" },
   { id: "survive", label: "Survivability", group: "Protect", hint: "City kits" },
+  { id: "alerts", label: "Alert literacy", group: "Protect", hint: "IPAWS / EAS / WEA" },
+  { id: "method", label: "Methodology", group: "Protect", hint: "How numbers are made" },
   { id: "learn", label: "Beginner guide", group: "Protect", hint: "Start here", quickFind: false },
 ];
 

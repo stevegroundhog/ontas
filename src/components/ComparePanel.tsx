@@ -1,6 +1,8 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { nations, type DeliveryLeg, type NuclearNation } from "@/data/nuclear-forces";
 import { formatNum } from "@/lib/utils";
+import { buildDeepLink, copyText, downloadTextFile } from "@/lib/share-export";
+import { DATA_AS_OF } from "@/data/nuclear-forces";
 
 const LEGS: DeliveryLeg[] = ["ICBM", "SLBM", "IRBM/MRBM", "Bomber", "Cruise", "Tactical"];
 
@@ -45,17 +47,63 @@ export function ComparePanel({
 }) {
   const left = useMemo(() => nations.find((n) => n.id === leftId) ?? nations[0]!, [leftId]);
   const right = useMemo(() => nations.find((n) => n.id === rightId) ?? nations[1]!, [rightId]);
+  const [shareMsg, setShareMsg] = useState("");
+
+  const cardText = useMemo(() => {
+    const lines = [
+      `ONTAS compare card · open estimates (${DATA_AS_OF})`,
+      `${left.short} vs ${right.short}`,
+      `Total inventory: ${left.totalInventory} vs ${right.totalInventory}`,
+      `Military stockpile: ${left.militaryStockpile} vs ${right.militaryStockpile}`,
+      `Deployed strategic: ${left.deployedStrategic} vs ${right.deployedStrategic}`,
+      `Triad: ${left.triad ? "Y" : "N"} vs ${right.triad ? "Y" : "N"}`,
+      "",
+      left.short + " doctrine: " + left.doctrine,
+      right.short + " doctrine: " + right.doctrine,
+      "",
+      "Educational only — not official inventories.",
+      buildDeepLink({ desk: "compare", compare: `${left.id},${right.id}`, nation: left.id }),
+    ];
+    return lines.join("\n");
+  }, [left, right]);
 
   return (
     <div className="crt-panel flex h-full flex-col overflow-hidden">
       <div className="border-b border-border px-4 py-3">
-        <div className="text-xs font-semibold uppercase tracking-wider text-violet-400">Compare</div>
-        <div className="mt-0.5 text-sm font-bold text-bright">
-          Two nuclear-armed states side-by-side
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-wider text-violet-400">Compare</div>
+            <div className="mt-0.5 text-sm font-bold text-bright">
+              Two nuclear-armed states side-by-side
+            </div>
+            <p className="mt-1 text-[11px] text-muted">
+              Open estimates only (FAS/SIPRI-class). Not official inventories.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              className="soft-btn"
+              onClick={async () => {
+                const ok = await copyText(cardText);
+                setShareMsg(ok ? "Copied share card" : "Copy failed");
+              }}
+            >
+              Copy card
+            </button>
+            <button
+              type="button"
+              className="soft-btn"
+              onClick={() => {
+                downloadTextFile(`ontas-compare-${left.short}-${right.short}.txt`, cardText);
+                setShareMsg("Downloaded .txt");
+              }}
+            >
+              Export .txt
+            </button>
+          </div>
         </div>
-        <p className="mt-1 text-[11px] text-muted">
-          Open estimates only (FAS/SIPRI-class). Not official inventories.
-        </p>
+        {shareMsg ? <p className="mt-1 text-[10px] text-ok">{shareMsg}</p> : null}
         <div className="mt-3 grid grid-cols-2 gap-2">
           <label className="text-[10px] font-semibold uppercase text-muted">
             Left

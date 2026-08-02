@@ -1,0 +1,20 @@
+{
+  "name": "ONTAS — Nuclear Threat Awareness",
+  "short_name": "ONTAS",
+  "description": "Educational open-source nuclear threat awareness desk. Not an official warning system.",
+  "start_url": "/?desk=map",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "orientation": "any",
+  "lang": "en",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["education", "news", "reference"]
+}

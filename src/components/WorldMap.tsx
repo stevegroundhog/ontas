@@ -39,6 +39,7 @@ interface WorldMapProps {
   showAis?: boolean;
   showConflicts?: boolean;
   showSeismic?: boolean;
+  showRanges?: boolean;
   subs?: SubPosition[];
   homePorts?: HomePort[];
   ais?: AisContact[];
@@ -88,6 +89,7 @@ export function WorldMap({
   showAis = true,
   showConflicts = true,
   showSeismic = true,
+  showRanges = false,
   subs = [],
   homePorts = [],
   ais = [],
@@ -516,6 +518,45 @@ export function WorldMap({
           })}
         </g>
 
+        {showRanges &&
+          nations
+            .filter((n) => !selectedId || n.id === selectedId)
+            .map((n) => {
+              const icbm = Math.max(
+                0,
+                ...n.systems.filter((s) => s.type === "ICBM" || s.type === "SLBM").map((s) => s.rangeKm),
+              );
+              const theater = Math.max(
+                0,
+                ...n.systems
+                  .filter((s) => s.type === "IRBM/MRBM" || s.type === "Cruise")
+                  .map((s) => s.rangeKm),
+              );
+              const p = project(n.lat, n.lon);
+              const rings: { rKm: number; color: string; label: string }[] = [];
+              if (icbm > 0) rings.push({ rKm: icbm, color: "#f472b6", label: "ICBM/SLBM max" });
+              if (theater > 0 && theater < icbm)
+                rings.push({ rKm: theater, color: "#fbbf24", label: "theater max" });
+              return rings.map((ring) => {
+                const latDelta = ring.rKm / 111;
+                const r = Math.abs(project(n.lat + latDelta, n.lon).y - p.y);
+                return (
+                  <g key={`${n.id}-${ring.label}`} pointerEvents="none">
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r={Math.min(r, 420)}
+                      fill="none"
+                      stroke={ring.color}
+                      strokeWidth="0.9"
+                      strokeDasharray="4 3"
+                      opacity={selectedId === n.id ? 0.55 : 0.22}
+                    />
+                  </g>
+                );
+              });
+            })}
+
         {nations.map((n) => {
           const p = project(n.lat, n.lon);
           const selected = selectedId === n.id;
@@ -620,6 +661,7 @@ export function WorldMap({
             {searchedPlace ? ` · PIN ${searchedPlace.name}` : ""}
             {showSeismic && watchSeismic.length ? ` · ${watchSeismic.length} seismic watch` : ""}
             {showAis && ais.length ? ` · ${ais.length} Baltic AIS` : ""}
+            {showRanges ? " · range bands (illustrative)" : ""}
           </text>
         </g>
       </svg>
@@ -634,6 +676,7 @@ export function WorldMap({
             ...(showSubs ? [["SSBN est.", "#a78bfa"] as const] : []),
             ...(showAis ? [["AIS Baltic", "#fbbf24"] as const] : []),
             ...(showSeismic ? [["Seismic", "#f87171"] as const] : []),
+            ...(showRanges ? [["Range band", "#f472b6"] as const] : []),
           ] as [string, string][]
         ).map(([label, color]) => (
           <span

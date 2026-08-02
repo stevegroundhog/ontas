@@ -13,6 +13,7 @@ import {
   type ConflictReport,
 } from "@/server/conflicts";
 import { formatNum } from "@/lib/utils";
+import { fetchHumanitarian, type HumanitarianItem } from "@/server/humanitarian";
 
 interface ConflictsPanelProps {
   selectedId: string | null;
@@ -46,6 +47,9 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
   const [health, setHealth] = useState<{ name: string; ok: boolean; count: number }[]>([]);
   const [pulse, setPulse] = useState("Select a conflict for live reports");
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [hum, setHum] = useState<HumanitarianItem[]>([]);
+  const [humAt, setHumAt] = useState<string | null>(null);
+  const [humOk, setHumOk] = useState(false);
 
   const list = useMemo(() => {
     let items = sortConflictsByIntensity(ARMED_CONFLICTS);
@@ -96,6 +100,27 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
     return () => clearInterval(t);
   }, [selectedId, load]);
 
+  useEffect(() => {
+    let cancelled = false;
+    const pull = async () => {
+      try {
+        const d = await fetchHumanitarian();
+        if (cancelled) return;
+        setHum(d.items);
+        setHumAt(d.fetchedAt);
+        setHumOk(d.feedOk);
+      } catch {
+        if (!cancelled) setHumOk(false);
+      }
+    };
+    void pull();
+    const id = window.setInterval(pull, 180_000);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+    };
+  }, []);
+
   return (
     <div className="crt-panel flex h-full flex-col overflow-hidden">
       <div className="border-b border-border px-4 py-3">
@@ -107,8 +132,31 @@ export function ConflictsPanel({ selectedId, onSelect, now }: ConflictsPanelProp
         </div>
         <p className="mt-1 text-[11px] leading-snug text-muted">
           Neutral registry with open fatality ranges (contested) + multi-source wires. Not
-          propaganda — open original articles.
+          propaganda — open original articles. Humanitarian desk: ReliefWeb / UN public feeds.
         </p>
+        {hum.length > 0 && (
+          <div className="mt-2 max-h-28 overflow-y-auto rounded-xl border border-border bg-bg/40 px-2.5 py-2">
+            <div className="text-[10px] font-semibold uppercase tracking-wide text-teal-300">
+              Humanitarian wire {humOk ? "· live" : "· limited"}
+              {humAt ? ` · ${new Date(humAt).toISOString().slice(11, 16)}Z` : ""}
+            </div>
+            <ul className="mt-1 space-y-1">
+              {hum.slice(0, 4).map((h) => (
+                <li key={h.id} className="text-[11px] leading-snug">
+                  <a
+                    href={h.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-fg/90 hover:text-teal-300 hover:underline"
+                  >
+                    <span className="text-dim">[{h.source}] </span>
+                    {h.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
         <input
           type="search"
           value={q}

@@ -21,6 +21,9 @@ export const Route = createRootRoute({
           "Beginner-friendly open-source nuclear threat awareness: DEFCON explained, world conflicts, live public reports, naval estimates, and city survival kits. Educational only — not an official warning system.",
       },
       { name: "theme-color", content: "#0b1220" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
       { name: "robots", content: "index,follow" },
       { property: "og:title", content: "ONTAS — Nuclear Threat Awareness & Beginner Guide" },
       {
@@ -34,6 +37,8 @@ export const Route = createRootRoute({
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/favicon.svg" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {

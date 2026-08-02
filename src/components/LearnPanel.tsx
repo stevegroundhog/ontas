@@ -43,8 +43,8 @@ const SECTIONS: {
     blurb: "Menu button, jump search, and when the map appears.",
     body: [
       {
-        h: "Quick find (no side menu)",
-        p: "Every desk is under Quick find on Live map, grouped Situational / Arsenals / Strategic / Protect. Warheads & yields are together; Ships, subs & aircraft are together. Header has Live map, Beginner guide, and Essay — use Live map anytime to return home.",
+        h: "Quick find + deep links",
+        p: "Every desk is under Quick find (Situational / Arsenals / Strategic / Protect). Share link copies ?desk=…&nation=… URLs. Methodology explains every number; Alert literacy covers IPAWS/EAS/WEA; Crisis timeline covers close calls. Header: Live map, Beginner guide, Essay.",
       },
       {
         h: "Jump search",
@@ -388,8 +388,8 @@ export function LearnPanel() {
               {s.id === "start" && (
                 <div className="mt-6 rounded-xl border border-border bg-black/25 p-3 text-xs leading-relaxed text-muted">
                   <strong className="text-bright">Suggested path:</strong> How to get around → Nuclear
-                  basics → DEFCON → Yields & aircraft → Conflicts → Terror history → Rad / CBRN →
-                  Survivability → Limits. Use the left app menu to open each full desk.
+                  basics → DEFCON → Methodology → Alert literacy → Crisis timeline → Yields →
+                  Conflicts → Survivability → Limits. Use Quick find or Share link deep URLs.
                 </div>
               )}
 

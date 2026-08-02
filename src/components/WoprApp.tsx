@@ -50,12 +50,26 @@ import { TreatiesPanel } from "./TreatiesPanel";
 import { WarheadsPanel } from "./WarheadsPanel";
 import { WorldMap } from "./WorldMap";
 import { fetchSpaceWeather, type SpaceWeatherSnapshot } from "@/server/space-weather";
+import { MethodologyPanel } from "./MethodologyPanel";
+import { AlertLiteracyPanel } from "./AlertLiteracyPanel";
+import { CrisisTimelinePanel } from "./CrisisTimelinePanel";
+import { TreatyClock } from "./TreatyClock";
+import {
+  OnboardingModal,
+  hasSeenOnboarding,
+  markOnboardingSeen,
+} from "./OnboardingModal";
+import { buildDeepLink, copyText } from "@/lib/share-export";
 
 const LEARN_KEY = "ontas-saw-learn";
 const NAV_KEY = "ontas-section";
 
 function loadSection(): AppSection {
   try {
+    if (typeof window !== "undefined") {
+      const desk = new URLSearchParams(window.location.search).get("desk");
+      if (desk && NAV_ITEMS.some((i) => i.id === desk)) return desk as AppSection;
+    }
     const s = sessionStorage.getItem(NAV_KEY) as AppSection | null;
     if (s && NAV_ITEMS.some((i) => i.id === s)) return s;
   } catch {
@@ -64,13 +78,48 @@ function loadSection(): AppSection {
   return "map";
 }
 
+function readUrlNation(): string | null {
+  try {
+    const n = new URLSearchParams(window.location.search).get("nation");
+    if (n && nations.some((x) => x.id === n)) return n;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function readUrlCompare(): [string, string] | null {
+  try {
+    const c = new URLSearchParams(window.location.search).get("compare");
+    if (!c) return null;
+    const [a, b] = c.split(",").map((s) => s.trim());
+    if (a && b && nations.some((x) => x.id === a) && nations.some((x) => x.id === b)) {
+      return [a, b];
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+function readUrlConflict(): string | null {
+  try {
+    const id = new URLSearchParams(window.location.search).get("conflict");
+    if (id && ARMED_CONFLICTS.some((c) => c.id === id)) return id;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 export function WoprApp() {
   const [booted, setBooted] = useState(false);
   const [section, setSection] = useState<AppSection>(loadSection);
   const [jump, setJump] = useState("");
-  const [selectedId, setSelectedId] = useState<string | null>("us");
-  const [compareLeft, setCompareLeft] = useState("us");
-  const [compareRight, setCompareRight] = useState("ru");
+  const [selectedId, setSelectedId] = useState<string | null>(() => readUrlNation() ?? "us");
+  const cmp0 = readUrlCompare();
+  const [compareLeft, setCompareLeft] = useState(cmp0?.[0] ?? "us");
+  const [compareRight, setCompareRight] = useState(cmp0?.[1] ?? "ru");
   const [newsFilterId, setNewsFilterId] = useState<string | null>(null);
   const [scenarioId, setScenarioId] = useState(scenarios[0]!.id);
   const [animating, setAnimating] = useState(false);
@@ -98,20 +147,58 @@ export function WoprApp() {
   const [showAis, setShowAis] = useState(true);
   const [showConflicts, setShowConflicts] = useState(true);
   const [showSeismic, setShowSeismic] = useState(true);
+  const [showRanges, setShowRanges] = useState(false);
+  const [layersOpen, setLayersOpen] = useState(false);
   const [spaceWx, setSpaceWx] = useState<SpaceWeatherSnapshot | null>(null);
   const [linkLive, setLinkLive] = useState(false);
+  const [shareNote, setShareNote] = useState("");
+  const [showOnboard, setShowOnboard] = useState(() => !hasSeenOnboarding());
 
   const [searchedPlace, setSearchedPlace] = useState<PlaceHit | null>(null);
   const [survivalProfile, setSurvivalProfile] = useState<SurvivalProfile | null>(null);
-  const [selectedConflictId, setSelectedConflictId] = useState<string | null>(null);
+  const [selectedConflictId, setSelectedConflictId] = useState<string | null>(() => readUrlConflict());
 
-  const go = useCallback((s: AppSection) => {
-    setSection(s);
-    try {
-      sessionStorage.setItem(NAV_KEY, s);
-      if (s === "learn") sessionStorage.setItem(LEARN_KEY, "1");
-    } catch {
-      /* ignore */
+  const syncUrl = useCallback(
+    (s: AppSection, nation: string | null, left: string, right: string, conflict: string | null) => {
+      try {
+        const u = new URL(window.location.href);
+        u.searchParams.set("desk", s);
+        if (nation) u.searchParams.set("nation", nation);
+        else u.searchParams.delete("nation");
+        if (s === "compare") u.searchParams.set("compare", `${left},${right}`);
+        else u.searchParams.delete("compare");
+        if (conflict) u.searchParams.set("conflict", conflict);
+        else u.searchParams.delete("conflict");
+        u.searchParams.set("asof", new Date().toISOString().slice(0, 16) + "Z");
+        window.history.replaceState({}, "", u.toString());
+      } catch {
+        /* ignore */
+      }
+    },
+    [],
+  );
+
+  const go = useCallback(
+    (s: AppSection) => {
+      setSection(s);
+      try {
+        sessionStorage.setItem(NAV_KEY, s);
+        if (s === "learn") sessionStorage.setItem(LEARN_KEY, "1");
+      } catch {
+        /* ignore */
+      }
+      syncUrl(s, selectedId, compareLeft, compareRight, selectedConflictId);
+    },
+    [syncUrl, selectedId, compareLeft, compareRight, selectedConflictId],
+  );
+
+  useEffect(() => {
+    syncUrl(section, selectedId, compareLeft, compareRight, selectedConflictId);
+  }, [section, selectedId, compareLeft, compareRight, selectedConflictId, syncUrl]);
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      void navigator.serviceWorker.register("/sw.js").catch(() => undefined);
     }
   }, []);
 
@@ -442,11 +529,18 @@ export function WoprApp() {
         );
       case "climate":
         return <ClimatePanel />;
+      case "method":
+        return <MethodologyPanel />;
+      case "alerts":
+        return <AlertLiteracyPanel />;
+      case "history":
+        return <CrisisTimelinePanel />;
       case "map":
       default:
         return (
           <div className="crt-panel flex h-full flex-col gap-3 overflow-y-auto p-4">
             <DefconBadge state={defcon} onExplain={() => go("learn")} />
+            <TreatyClock now={now} onOpenTreaties={() => go("treaties")} />
             <LiveStatusBar now={now} />
             {spaceWx && (
               <div className="rounded-xl border border-border bg-bg/40 px-3 py-2 text-[11px]">
@@ -546,12 +640,44 @@ export function WoprApp() {
           >
             Beginner guide
           </button>
+          <button
+            type="button"
+            className={`soft-btn shrink-0 hidden sm:inline-flex ${section === "method" ? "active" : ""}`}
+            onClick={() => go("method")}
+          >
+            Methodology
+          </button>
+          <button
+            type="button"
+            className={`soft-btn shrink-0 hidden sm:inline-flex ${section === "alerts" ? "active" : ""}`}
+            onClick={() => go("alerts")}
+          >
+            Alerts
+          </button>
           <Link
             to="/article"
             className="soft-btn shrink-0"
           >
             Essay
           </Link>
+          <button
+            type="button"
+            className="soft-btn shrink-0"
+            onClick={async () => {
+              const url = buildDeepLink({
+                desk: section,
+                nation: selectedId ?? undefined,
+                compare: section === "compare" ? `${compareLeft},${compareRight}` : undefined,
+                conflict: selectedConflictId ?? undefined,
+              });
+              const ok = await copyText(url);
+              setShareNote(ok ? "Link copied" : url);
+              window.setTimeout(() => setShareNote(""), 2500);
+            }}
+          >
+            Share link
+          </button>
+          {shareNote ? <span className="text-[10px] text-ok">{shareNote}</span> : null}
           <div className="relative hidden min-w-[160px] max-w-xs flex-1 md:block">
             <input
               value={jump}
@@ -645,42 +771,70 @@ export function WoprApp() {
           </div>
 
           {showMap && (
-            <div className="crt-panel flex flex-wrap items-center gap-2 px-3 py-2">
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
-                Map layers
-              </span>
-              <button
-                type="button"
-                className={`soft-btn ${showConflicts ? "active" : ""}`}
-                onClick={() => setShowConflicts((v) => !v)}
-              >
-                Conflicts
-              </button>
-              <button
-                type="button"
-                className={`soft-btn ${showSubs ? "active" : ""}`}
-                onClick={() => setShowSubs((v) => !v)}
-              >
-                SSBN
-              </button>
-              <button
-                type="button"
-                className={`soft-btn ${showAis ? "active" : ""}`}
-                onClick={() => setShowAis((v) => !v)}
-              >
-                AIS Baltic
-              </button>
-              <button
-                type="button"
-                className={`soft-btn ${showSeismic ? "active" : ""}`}
-                onClick={() => setShowSeismic((v) => !v)}
-              >
-                Seismic
-              </button>
-              {section !== "map" && (
-                <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
-                  ← Live map
+            <div className="crt-panel px-3 py-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wide text-muted">
+                  Map layers
+                </span>
+                <button
+                  type="button"
+                  className="soft-btn sm:hidden"
+                  onClick={() => setLayersOpen((v) => !v)}
+                  aria-expanded={layersOpen}
+                >
+                  {layersOpen ? "Hide layers" : "Layers"}
                 </button>
+                <div
+                  className={`${layersOpen ? "flex" : "hidden"} w-full flex-wrap gap-2 sm:flex sm:w-auto`}
+                >
+                  <button
+                    type="button"
+                    className={`soft-btn min-h-11 sm:min-h-0 ${showConflicts ? "active" : ""}`}
+                    onClick={() => setShowConflicts((v) => !v)}
+                  >
+                    Conflicts
+                  </button>
+                  <button
+                    type="button"
+                    className={`soft-btn min-h-11 sm:min-h-0 ${showSubs ? "active" : ""}`}
+                    onClick={() => setShowSubs((v) => !v)}
+                  >
+                    SSBN
+                  </button>
+                  <button
+                    type="button"
+                    className={`soft-btn min-h-11 sm:min-h-0 ${showAis ? "active" : ""}`}
+                    onClick={() => setShowAis((v) => !v)}
+                  >
+                    AIS Baltic
+                  </button>
+                  <button
+                    type="button"
+                    className={`soft-btn min-h-11 sm:min-h-0 ${showSeismic ? "active" : ""}`}
+                    onClick={() => setShowSeismic((v) => !v)}
+                  >
+                    Seismic
+                  </button>
+                  <button
+                    type="button"
+                    className={`soft-btn min-h-11 sm:min-h-0 ${showRanges ? "active" : ""}`}
+                    onClick={() => setShowRanges((v) => !v)}
+                    title="Illustrative open-estimate range bands — not targeting"
+                  >
+                    Range bands
+                  </button>
+                </div>
+                {section !== "map" && (
+                  <button type="button" className="soft-btn ml-auto" onClick={() => go("map")}>
+                    ← Live map
+                  </button>
+                )}
+              </div>
+              {showRanges && (
+                <p className="mt-1.5 text-[10px] text-dim">
+                  Range bands = published open max ranges for ICBM/SLBM (and theater) from capital pin —
+                  illustrative only, not operational.
+                </p>
               )}
             </div>
           )}
@@ -698,7 +852,7 @@ export function WoprApp() {
                     selectedId={selectedId}
                     onSelect={(id) => {
                       setSelectedId(id);
-                      go("forces");
+                      if (section !== "map") go("forces");
                     }}
                     scenario={scenario}
                     animating={animating}
@@ -707,6 +861,7 @@ export function WoprApp() {
                     showAis={showAis}
                     showConflicts={showConflicts}
                     showSeismic={showSeismic}
+                    showRanges={showRanges}
                     subs={subs}
                     homePorts={HOME_PORTS}
                     ais={ais}
@@ -739,6 +894,14 @@ export function WoprApp() {
             {" — "}
             Public sensors, open estimates, historical terrorism record, yields/aircraft desks.
             Not official DEFCON, not a warning system. Emergencies: IPAWS/EAS/WEA.{" "}
+            <button type="button" className="text-sky-300 underline" onClick={() => go("method")}>
+              Methodology
+            </button>
+            {" · "}
+            <button type="button" className="text-sky-300 underline" onClick={() => go("alerts")}>
+              Alert literacy
+            </button>
+            {" · "}
             <Link to="/article" className="text-sky-300 underline">
               Essay
             </Link>
@@ -754,6 +917,16 @@ export function WoprApp() {
           </footer>
         </main>
       </div>
+
+      <OnboardingModal
+        open={showOnboard}
+        onClose={() => {
+          markOnboardingSeen();
+          setShowOnboard(false);
+        }}
+        onLearn={() => go("learn")}
+        onMethod={() => go("method")}
+      />
     </div>
   );
 }

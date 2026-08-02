@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { buildSurvivalProfile, type SurvivalItem, type SurvivalProfile } from "@/lib/survivability";
 import { searchPlaces, type PlaceHit } from "@/server/geocode";
+import { buildDeepLink, copyText, downloadTextFile } from "@/lib/share-export";
 
 interface PlaceSearchProps {
   onSelectPlace: (place: PlaceHit | null, profile: SurvivalProfile | null) => void;
@@ -162,6 +163,56 @@ export function PlaceSearch({ onSelectPlace, selectedPlace, profile }: PlaceSear
                 <span className="chip tabular">
                   {selectedPlace.lat.toFixed(2)}°, {selectedPlace.lon.toFixed(2)}°
                 </span>
+              </div>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  className="soft-btn"
+                  onClick={async () => {
+                    const body = [
+                      `ONTAS survivability kit · ${selectedPlace.name}`,
+                      selectedPlace.displayName,
+                      `Risk band: ${profile.riskBand} (${profile.riskScore}/100)`,
+                      `Climate: ${profile.climate} · Settlement: ${profile.settlement}`,
+                      profile.summary,
+                      "",
+                      ...profile.items.map(
+                        (it) => `• [${it.category}] ${it.name}${it.reason ? " — " + it.reason : ""}`,
+                      ),
+                      "",
+                      "Educational readiness list — not an official emergency plan.",
+                      buildDeepLink({ desk: "survive" }),
+                    ].join("\n");
+                    await copyText(body);
+                  }}
+                >
+                  Copy kit
+                </button>
+                <button
+                  type="button"
+                  className="soft-btn"
+                  onClick={() => {
+                    const body = [
+                      `ONTAS survivability kit · ${selectedPlace.name}`,
+                      selectedPlace.displayName,
+                      `Risk band: ${profile.riskBand} (${profile.riskScore}/100)`,
+                      `Climate: ${profile.climate}`,
+                      profile.summary,
+                      "",
+                      ...profile.items.map(
+                        (it) => `• [${it.category}] ${it.name}${it.reason ? " — " + it.reason : ""}`,
+                      ),
+                      "",
+                      "Educational only.",
+                    ].join("\n");
+                    downloadTextFile(
+                      `ontas-kit-${selectedPlace.name.replace(/\s+/g, "-").slice(0, 40)}.txt`,
+                      body,
+                    );
+                  }}
+                >
+                  Export kit .txt
+                </button>
               </div>
               {profile.climateFocus?.length > 0 && (
                 <div className="mt-3 rounded-xl border border-sky-500/25 bg-sky-500/10 px-3 py-2">
